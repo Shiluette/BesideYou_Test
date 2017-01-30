@@ -208,8 +208,8 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 	//지형 객체는 격자 메쉬들의 배열로 만들 것이다. 
 	//nBlockWidth, nBlockLength는 격자 메쉬 하나의 가로, 세로 크기이다. 
 	//cxQuadsPerBlock, czQuadsPerBlock은 격자 메쉬의 가로 방향과 세로 방향 사각형의 개수이다.
-	int cxQuadPerBlock = nBlockWidth - 1;
-	int czQuadsPerBlock = nBlockLength - 1;
+	int cxQuadPerBlock = nBlockWidth ;
+	int czQuadsPerBlock = nBlockLength;
 
 	//d3dxvScale는 지형을 실제로 몇 배 확대할 것인가를 나타낸다.
 	m_d3dxvScale = d3dxvScale;
@@ -218,8 +218,8 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 	//m_pHeightMap = new CHeightMap(pFileName, nWidth, nLength, d3dxvScale);
 
 	//지형에서 가로 방향, 세로 방향으로 격자 메쉬가 몇 개가 있는가를 나타낸다.
-	int cxBlocks = (m_nWidth - 1) / cxQuadPerBlock;
-	int czBlocks = (m_nLength - 1) / czQuadsPerBlock;
+	int cxBlocks = (m_nWidth) / cxQuadPerBlock;
+	int czBlocks = (m_nLength) / czQuadsPerBlock;
 
 	////지형 전체를 표현하기위한 격자 메쉬의 개수이다.
 	m_nMeshes = cxBlocks * czBlocks;
@@ -234,8 +234,8 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 		for (int x = 0, xStart = 0; x < cxBlocks; x++)
 		{
 			//지형의 일부분을 나타내는 격자 메쉬의 시작 위치이다.
-			xStart = x * (nBlockWidth - 1);
-			zStart = z * (nBlockLength - 1);
+			xStart = x * (nBlockWidth);
+			zStart = z * (nBlockLength);
 			//지형의 일부분을 나타내는 격자 메쉬를 생성하여 지형 메쉬에 저장한다.
 			pHeightMapGridMesh = new CHeightMapGridMesh(pd3dDevice, xStart, zStart, nBlockWidth, nBlockLength, d3dxvScale, d3dxColor, 0);
 			SetMesh(pHeightMapGridMesh, x + (z*cxBlocks));

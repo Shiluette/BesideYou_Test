@@ -1,1 +1,8 @@
-﻿  BesideYou_Test.vcxproj -> C:\Users\dydrn\OneDrive\문서\Visual Studio 2015\Projects\BesideYou\BesideYou_Test\BesideYou_Test\x64\Debug\BesideYou_Test.exe
+﻿  GameFramework.cpp
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_test\object.h(74): warning C4244: '인수': 'float'에서 'UINT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_test\shader.h(38): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_test\shader.h(40): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_test\shader.h(42): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_test\shader.h(44): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_test\gameframework.cpp(184): warning C4244: '인수': 'WPARAM'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  BesideYou_Test.vcxproj -> C:\Users\dydrn\OneDrive\문서\Visual Studio 2015\Projects\BesideYou\BesideYou_Test\BesideYou_Test\x64\Debug\BesideYou_Test.exe

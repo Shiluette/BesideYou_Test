@@ -330,8 +330,10 @@ void CGameFramework::ProcessInput()
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 			}
 			/*플레이어를 dwDirection 방향으로 이동한다(실제로는 속도 벡터를 변경한다). 이동 거리는 시간에 비례하도록 한다. 플레이어의 이동 속력은 (50/초)로 가정한다. 만약 플레이어의 이동 속력이 있다면 그 값을 사용한다.*/
-			if (dwDirection) m_pPlayer->Move(dwDirection, 50.0f * m_GameTimer.GetTimeElapsed(), true);
+			if (dwDirection) m_pPlayer->Move(dwDirection, 100.0f * m_GameTimer.GetTimeElapsed(), true);
 		}
+
+		//if (GetKeyState('D') & 0xFF00) m_pScene->ProcessInput();
 	}
 	//플레이어를 실제로 이동하고 카메라를 갱신한다. 중력과 마찰력의 영향을 속도 벡터에 적용한다.
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
@@ -349,9 +351,9 @@ void CGameFramework::FrameAdvance()
 
 	ProcessInput();
 
-	AnimateObjects();
+	//AnimateObjects();
 
-	float fClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+	float fClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	//렌더 타겟 뷰를 색상(RGB: 0.0f, 0.125f, 0.3f)으로 지운다. 
 	m_pd3dDeviceContext->ClearRenderTargetView(m_pd3dRenderTargetView, fClearColor);
 	

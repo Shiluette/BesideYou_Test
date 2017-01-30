@@ -31,11 +31,22 @@ public:
 	virtual void AnimateObjects(float fTimeElapsed);
 	virtual void OnPrepareRender(ID3D11DeviceContext *pd3dDeviceContext);
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera = NULL);
+	
+	void MoveObject(int object, char * direction)
+	{
+		if ( direction == "RIGHT" )
+			m_ppObjects[object]->MoveStrafe(0.1);
+		if (direction == "LEFT")
+			m_ppObjects[object]->MoveStrafe(-0.1);
+		if (direction == "BACK")
+			m_ppObjects[object]->MoveForward(0.1);
+		if (direction == "FRONT")
+			m_ppObjects[object]->MoveForward(-0.1);
+	}
 
 protected:
 	ID3D11VertexShader *m_pd3dVertexShader;
 	ID3D11InputLayout *m_pd3dVertexLayout;
-
 	ID3D11PixelShader *m_pd3dPixelShader;
 
 	//쉐이더 객체가 게임 객체들의 리스트를 가진다.

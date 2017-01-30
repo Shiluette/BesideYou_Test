@@ -32,8 +32,8 @@
 //---------------------------------------------------------------------------------------------
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 
-#define FRAME_BUFFER_WIDTH				640
-#define FRAME_BUFFER_HEIGHT				480
+#define FRAME_BUFFER_WIDTH				1280
+#define FRAME_BUFFER_HEIGHT				800
 
 #define VS_SLOT_CAMERA					0x00
 #define VS_SLOT_WORLD_MATRIX			0x01

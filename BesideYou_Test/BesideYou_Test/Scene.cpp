@@ -51,6 +51,24 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 
 bool CScene::ProcessInput()
 {
+	if (GetKeyState('D') & 0xFF00)
+		m_ppShaders[0]->MoveObject(0,"RIGHT");
+	if (GetKeyState('A') & 0xFF00)
+		m_ppShaders[0]->MoveObject(0, "LEFT");
+	if (GetKeyState('W') & 0xFF00)
+		m_ppShaders[0]->MoveObject(0, "BACK");
+	if (GetKeyState('S') & 0xFF00)
+		m_ppShaders[0]->MoveObject(0, "FRONT");
+
+	if (GetKeyState('L') & 0xFF00)
+		m_ppShaders[0]->MoveObject(1, "RIGHT");
+	if (GetKeyState('J') & 0xFF00)
+		m_ppShaders[0]->MoveObject(1, "LEFT");
+	if (GetKeyState('I') & 0xFF00)
+		m_ppShaders[0]->MoveObject(1, "BACK");
+	if (GetKeyState('K') & 0xFF00)
+		m_ppShaders[0]->MoveObject(1, "FRONT");
+
 	return(false);
 }
 

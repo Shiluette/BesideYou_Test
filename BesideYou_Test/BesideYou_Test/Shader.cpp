@@ -98,8 +98,7 @@ void CShader::CreatePixelShaderFromFile(ID3D11Device *pd3dDevice, WCHAR *pszFile
 
 void CShader::CreateShader(ID3D11Device *pd3dDevice)
 {
-	//052
-	//하나의 정점은 위치 벡터(실수 3개)와 색상(실수 4개)을 포함한다. 
+
 	D3D11_INPUT_ELEMENT_DESC d3dInputLayout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -293,9 +292,9 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
-	D3DXVECTOR3 d3dxvScale(8.0f, 2.0f, 8.0);
-	D3DXCOLOR d3dxColor(0.5f, 0.5f, 0.1f, 0.0f);
+	D3DXVECTOR3 d3dxvScale(10.0f, 2.0f, 10.0);
+	D3DXCOLOR d3dxColor(0.3f, 0.3f, 1.0f, 1.0f);
 
-	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 17, 17);
-	m_ppObjects[0]->SetPosition(-100, 0, -100);
+	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 251, 251, 251, 251, NULL, d3dxvScale, d3dxColor);
+	m_ppObjects[0]->SetPosition(-1250, 0, -1250);
 }

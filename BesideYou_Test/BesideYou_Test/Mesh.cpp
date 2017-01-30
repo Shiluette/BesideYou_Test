@@ -403,7 +403,7 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 
 	m_nWidth = nWidth;
 	m_nLength = nLength;
-	m_d3dxvScale = D3DXVECTOR3(30.0, 0.0, 30.0);
+	m_d3dxvScale = d3dxvScale;
 
 	//float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
 	///*xStart와 zStart는 격자의 시작 위치(x-좌표와 z-좌표)를 나타낸다.
@@ -429,7 +429,7 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 		for (int x = xStart; x < (xStart + nWidth); x++, i++)
 		{
 			m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), 0, (z*m_d3dxvScale.z));
-			pd3dxColors[i] = (0.5f, 0.5f, 0.5f);
+			pd3dxColors[i] = d3dxColor;
 		}
 	}
 
