@@ -208,7 +208,7 @@ void CSceneShader::BuildObjects(ID3D11Device *pd3dDevice)
 
 	CCubeMesh *pCubeMesh[2];
 	pCubeMesh[0] = new CCubeMesh(pd3dDevice, 12.0f, 12.0f, 12.0f, D3DCOLOR_XRGB(0, 128, 0));
-	pCubeMesh[1] = new CCubeMesh(pd3dDevice, 12.0f, 12.0f, 12.0f, D3DCOLOR_XRGB(128, 0, 128));
+	pCubeMesh[1] = new CCubeMesh(pd3dDevice, 12.0f, 12.0f, 12.0f, D3DCOLOR_XRGB(128, 0, 0));
 
 	m_nObjects = 2;
 	m_ppObjects = new CGameObject*[m_nObjects];

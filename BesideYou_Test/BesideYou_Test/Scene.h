@@ -22,4 +22,9 @@ public:
 	bool ProcessInput();
 	void AnimateObjects(float fTimeElapsed);
 	void Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera);
+
+	D3DXVECTOR3 ReturnCubePosition ( int object )
+	{
+		return m_ppShaders[0]->ReturnCubePosition(object);
+	}
 };

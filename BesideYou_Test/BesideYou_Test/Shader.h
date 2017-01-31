@@ -44,6 +44,10 @@ public:
 			m_ppObjects[object]->MoveForward(-0.1);
 	}
 
+	D3DXVECTOR3 ReturnCubePosition(int object)
+	{
+		return m_ppObjects[object]->GetPosition();
+	}
 protected:
 	ID3D11VertexShader *m_pd3dVertexShader;
 	ID3D11InputLayout *m_pd3dVertexLayout;

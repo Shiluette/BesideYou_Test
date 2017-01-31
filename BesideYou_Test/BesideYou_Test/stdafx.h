@@ -15,6 +15,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+#include <stdio.h>
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 #include <d3d11.h>
@@ -28,6 +29,16 @@
 
 //07100
 #include <D3D9Types.h>
+
+//다이렉트2d
+#include <d2d1_2.h>
+#include <d2d1_2helper.h>
+#include <dwrite.h>
+#include <wincodec.h>
+
+#include <d3d11_2.h>
+#include <dxgi1_3.h>
+#include <DxErr.h>
 
 //---------------------------------------------------------------------------------------------
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.

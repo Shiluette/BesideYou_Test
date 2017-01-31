@@ -40,10 +40,12 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 	//렌더링할 객체(게임 월드 객체)를 생성한다. 
 	BuildObjects();
 
+	//다이렉트2d
+	Build2DObjects();
+
 	return(true);
 }
 
-//07100
 bool CGameFramework::CreateRenderTargetDepthStencilView()
 {
 	HRESULT hResult = S_OK;
@@ -79,6 +81,24 @@ bool CGameFramework::CreateRenderTargetDepthStencilView()
 
 	m_pd3dDeviceContext->OMSetRenderTargets(1, &m_pd3dRenderTargetView, m_pd3dDepthStencilView);
 
+	//다이렉트2
+	float fdpiX, fdpiY;
+	m_pd2dFactory->GetDesktopDpi(&fdpiX, &fdpiY);
+	D2D1_BITMAP_PROPERTIES1 bitmapProperties =
+		D2D1::BitmapProperties1(
+			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+			D2D1::PixelFormat(DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+			, fdpiX
+			, fdpiY
+			);
+	IDXGISurface2 *dxgiBackBuffer;
+	ID2D1Bitmap1 *pd2dBitmapBackbuffer;
+	hResult = m_pDXGISwapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer));
+	hResult = m_pd2dContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer, &bitmapProperties, &pd2dBitmapBackbuffer);
+	m_pd2dContext->SetTarget(pd2dBitmapBackbuffer);
+	dxgiBackBuffer->Release();
+	pd2dBitmapBackbuffer->Release();
+
 	return(true);
 }
 
@@ -89,30 +109,6 @@ bool CGameFramework::CreateDirect3DDisplay()
 	m_nWndClientWidth = rcClient.right - rcClient.left;
 	m_nWndClientHeight = rcClient.bottom - rcClient.top;
 
-	UINT dwCreateDeviceFlags = 0;
-#ifdef _DEBUG
-	dwCreateDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	//디바이스를 생성하기 위하여 시도할 드라이버 유형의 순서를 나타낸다.
-	D3D_DRIVER_TYPE d3dDriverTypes[] =
-	{
-		D3D_DRIVER_TYPE_HARDWARE,
-		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE
-	};
-	UINT nDriverTypes = sizeof(d3dDriverTypes) / sizeof(D3D10_DRIVER_TYPE);
-
-	//디바이스를 생성하기 위하여 시도할 특성 레벨의 순서를 나타낸다.
-	D3D_FEATURE_LEVEL d3dFeatureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0
-	};
-	UINT nFeatureLevels = sizeof(d3dFeatureLevels) / sizeof(D3D_FEATURE_LEVEL);
-
-	//생성할 스왑 체인을 서술하는 구조체이다.
 	DXGI_SWAP_CHAIN_DESC dxgiSwapChainDesc;
 	::ZeroMemory(&dxgiSwapChainDesc, sizeof(dxgiSwapChainDesc));
 	dxgiSwapChainDesc.BufferCount = 1;
@@ -126,22 +122,76 @@ bool CGameFramework::CreateDirect3DDisplay()
 	dxgiSwapChainDesc.SampleDesc.Count = 1;
 	dxgiSwapChainDesc.SampleDesc.Quality = 0;
 	dxgiSwapChainDesc.Windowed = TRUE;
+	dxgiSwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH/*0*/;
+
+	UINT dwCreateDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#ifdef _DEBUG
+	dwCreateDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	D3D_DRIVER_TYPE d3dDriverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE
+	};
+	UINT nDriverTypes = sizeof(d3dDriverTypes) / sizeof(D3D_DRIVER_TYPE);
+
+	D3D_FEATURE_LEVEL pd3dFeatureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0
+	};
+	UINT nFeatureLevels = sizeof(pd3dFeatureLevels) / sizeof(D3D_FEATURE_LEVEL);
 
 	D3D_DRIVER_TYPE nd3dDriverType = D3D_DRIVER_TYPE_NULL;
 	D3D_FEATURE_LEVEL nd3dFeatureLevel = D3D_FEATURE_LEVEL_11_0;
-
 	HRESULT hResult = S_OK;
-	//디바이스의 드라이버 유형과 특성 레벨을 지원하는 디바이스와 스왑 체인을 생성한다. 고수준의 디바이스 생성을 시도하고 실패하면 다음 수준의 디바이스를 생성한다.
+#ifdef _WITH_DEVICE_AND_SWAPCHAIN
 	for (UINT i = 0; i < nDriverTypes; i++)
 	{
 		nd3dDriverType = d3dDriverTypes[i];
-		if (SUCCEEDED(hResult = D3D11CreateDeviceAndSwapChain(NULL, nd3dDriverType, NULL, dwCreateDeviceFlags, d3dFeatureLevels, nFeatureLevels, D3D11_SDK_VERSION, &dxgiSwapChainDesc, &m_pDXGISwapChain, &m_pd3dDevice, &nd3dFeatureLevel, &m_pd3dDeviceContext))) break;
+		if (SUCCEEDED(hResult = D3D11CreateDeviceAndSwapChain(NULL, nd3dDriverType, NULL, dwCreateDeviceFlags, pd3dFeatureLevels, nFeatureLevels, D3D11_SDK_VERSION, &dxgiSwapChainDesc, &m_pDXGISwapChain, &m_pd3dDevice, &nd3dFeatureLevel, &m_pd3dDeviceContext))) break;
 	}
-	if (!m_pDXGISwapChain || !m_pd3dDevice || !m_pd3dDeviceContext) return(false);
+#else
+	for (UINT i = 0; i < nDriverTypes; i++)
+	{
+		nd3dDriverType = d3dDriverTypes[i];
+		if (SUCCEEDED(hResult = D3D11CreateDevice(NULL, nd3dDriverType, NULL, dwCreateDeviceFlags, pd3dFeatureLevels, nFeatureLevels, D3D11_SDK_VERSION, &m_pd3dDevice, &nd3dFeatureLevel, &m_pd3dDeviceContext))) break;
+	}
+	if (!m_pd3dDevice) return(false);
 
-	//07100
-	if (!CreateRenderTargetDepthStencilView())
-		return(false);
+	if (FAILED(hResult = m_pd3dDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_n4xMSAAQualities))) return(false);
+#ifdef _WITH_MSAA4_MULTISAMPLING
+	dxgiSwapChainDesc.SampleDesc.Count = 4;
+	dxgiSwapChainDesc.SampleDesc.Quality = m_n4xMSAAQualities - 1;
+#else
+	dxgiSwapChainDesc.SampleDesc.Count = 1;
+	dxgiSwapChainDesc.SampleDesc.Quality = 0;
+#endif
+	IDXGIFactory1 *pdxgiFactory = NULL;
+	if (FAILED(hResult = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void **)&pdxgiFactory))) return(false);
+	IDXGIDevice2 *pdxgiDevice = NULL;
+	if (FAILED(hResult = m_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice2), (void **)&pdxgiDevice))) return(false);
+	if (FAILED(hResult = pdxgiFactory->CreateSwapChain(pdxgiDevice, &dxgiSwapChainDesc, &m_pDXGISwapChain))) return(false);
+
+	D2D1_FACTORY_OPTIONS options;
+	ZeroMemory(&options, sizeof(D2D1_FACTORY_OPTIONS));
+	options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+
+	hResult = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory1), &options, reinterpret_cast<LPVOID*>(&m_pd2dFactory));
+	hResult = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown **)&m_pdwFactory);
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+	hResult = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pwicFactory));
+	hResult = m_pd2dFactory->CreateDevice(pdxgiDevice, &m_pd2dDevice);
+	hResult = m_pd2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_pd2dContext);
+
+	if (pdxgiDevice) pdxgiDevice->Release();
+	if (pdxgiFactory) pdxgiFactory->Release();
+#endif
+
+	if (!CreateRenderTargetDepthStencilView()) return(false);
 
 	return(true);
 }
@@ -255,6 +305,21 @@ void CGameFramework::OnDestroy()
 	if (m_pDXGISwapChain) m_pDXGISwapChain->Release();
 	if (m_pd3dDeviceContext) m_pd3dDeviceContext->Release();
 	if (m_pd3dDevice) m_pd3dDevice->Release();
+
+	//다이렉트2
+	if (m_pd2dFactory) m_pd2dFactory->Release();
+	if (m_pd2dDevice) m_pd2dDevice->Release();
+	if (m_pd2dContext) m_pd2dContext->Release();
+	if (m_pdwFactory) m_pdwFactory->Release();
+	if (m_pwicFactory) m_pwicFactory->Release();
+
+	//2dObject
+	if (m_dwExplainFormat) m_dwExplainFormat->Release();
+	if (m_dwMyChattingFormat) m_dwMyChattingFormat->Release();
+	if (m_pd2drcBox) m_pd2drcBox->Release();
+	if (m_pd2dsbrBeige) m_pd2dsbrBeige->Release();
+	if (m_pd2dsbrGreenColor) m_pd2dsbrGreenColor->Release();
+	if (m_pd2dsbrRedColor) m_pd2dsbrRedColor->Release();
 }
 
 //0720
@@ -270,6 +335,242 @@ void CGameFramework::BuildObjects()
 
 	m_pScene = new CScene();
 	m_pScene->BuildObjects(m_pd3dDevice);
+}
+
+//다이렉트2d
+void CGameFramework::Build2DObjects()
+{
+	m_pdwFactory->CreateTextFormat(L"맑은고딕", nullptr, DWRITE_FONT_WEIGHT_EXTRA_BLACK, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_MEDIUM, 15.0f, L"ko-ko", &m_dwExplainFormat);
+	//m_pdwFactory->CreateTextFormat(L"맑은고딕", nullptr, DWRITE_FONT_WEIGHT_EXTRA_BLACK, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 15.0f, L"ko-ko", &m_dwMyChattingFormat);
+	HRESULT result;
+
+	result = m_pd2dFactory->CreateRectangleGeometry(D2D1::RectF(0, 0, 350, 450), &m_pd2drcBox);		// rectf는 상자크기 지정
+	result = m_pd2dContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Beige, 0.5f), &m_pd2dsbrBeige);
+	result = m_pd2dContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 1.0f), &m_pd2dsbrGreenColor);
+	result = m_pd2dContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 1.0f), &m_pd2dsbrRedColor);
+
+	//bool b_result = false;
+	m_nBitmaps = 1;
+	m_ppd2dBitmap = new ID2D1Bitmap1*[m_nBitmaps];
+	result = LoadImageFromFile(L"Brick01.jpg", &m_ppd2dBitmap[0], nullptr, 0, 0, WICBitmapTransformRotate90);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/button_on.jpg", &m_ppd2dBitmap[BITMAP::LobbyStartOff], nullptr, 0, 0, WICBitmapTransformRotate0);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbyStartOn], nullptr, 0, 0, WICBitmapTransformRotate0);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbySelectOff], nullptr, 0, 0, WICBitmapTransformRotate0);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbySelectOn], nullptr, 0, 0, WICBitmapTransformRotate0);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbyExitOff], nullptr, 0, 0, WICBitmapTransformRotate0);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbyExitOn], nullptr, 0, 0, WICBitmapTransformRotate0);
+
+	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrow.png", &m_ppd2dBitmap[BITMAP::SelectArrowLeftOff], nullptr, 0, 0, WICBitmapTransformRotate180);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrowOn.png", &m_ppd2dBitmap[BITMAP::SelectArrowLeftOn], nullptr, 0, 0, WICBitmapTransformRotate180);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrow.png", &m_ppd2dBitmap[BITMAP::SelectArrowRightOff], nullptr, 0, 0, WICBitmapTransformRotate0);
+	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrowOn.png", &m_ppd2dBitmap[BITMAP::SelectArrowRightOn], nullptr, 0, 0, WICBitmapTransformRotate0);
+}
+
+void CGameFramework::Render2D()
+{
+	m_pd2dContext->BeginDraw();
+
+	D2D1::Matrix3x2F mtx = D2D1::Matrix3x2F::Identity();
+	m_pd2dContext->SetTransform(mtx);
+
+	D2D1::Matrix3x2F rot = D2D1::Matrix3x2F::Identity();
+
+	//베이지 사각형 그리기
+	//mtx = D2D1::Matrix3x2F::Translation(0, 0);
+	//m_pd2dContext->SetTransform(mtx);
+	//m_pd2dContext->FillGeometry(m_pd2drcBox, m_pd2dsbrBeige);
+
+	//2d텍스쳐 띄우기
+	//m_pd2dContext->DrawBitmap(m_ppd2dBitmap[0], D2D1::RectF(0.f, 0.f, m_nWndClientWidth / 3, m_nWndClientHeight / 3), 0.9f);
+
+	//글씨 회전시키려고 해봤음
+	/*rot = D2D1::Matrix3x2F::Rotation(45.0f, D2D1::Point2F(10, 10));
+	rot =  mtx * rot;
+	m_pd2dContext->SetTransform(rot);*/
+
+	//mtx = D2D1::Matrix3x2F::Translation(10, 10);
+	//m_pd2dContext->SetTransform(mtx);
+
+	mtx = D2D1::Matrix3x2F::Translation(0, 0);
+	m_pd2dContext->SetTransform(mtx);
+
+	//글씨띄우기
+	wchar_t w_str[50];
+	wmemset(w_str, 0, 50);
+	wsprintf(w_str, L"GreenCube : (%d %d %d)", (int)m_pScene->ReturnCubePosition(0).x , (int)m_pScene->ReturnCubePosition(0).y , (int)m_pScene->ReturnCubePosition(0).z);
+	//m_GameTimer.GetFrameRate();
+	m_pd2dContext->DrawTextW(w_str, 50, m_dwExplainFormat, D2D1::RectF(0.0f, 0.0f, 600.0f, 300.0f), m_pd2dsbrGreenColor);
+
+	m_pScene->ReturnCubePosition(0);
+	mtx = D2D1::Matrix3x2F::Translation(0, 20);
+	m_pd2dContext->SetTransform(mtx);
+
+	wchar_t w_str2[50];
+	wmemset(w_str2, 0, 50);
+	wsprintf(w_str2, L"RedCube : (%d %d %d)", (int)m_pScene->ReturnCubePosition(1).x, (int)m_pScene->ReturnCubePosition(1).y, (int)m_pScene->ReturnCubePosition(1).z);
+	m_pd2dContext->DrawTextW(w_str2, 50, m_dwExplainFormat, D2D1::RectF(0.0f, 0.0f, 600.0f, 300.0f), m_pd2dsbrRedColor);
+
+	//if (SceneNumber == Loading)
+	//{
+	//	m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LOGO], D2D1::RectF(0.f, 0.f, m_nWndClientWidth / 3, m_nWndClientHeight / 3), 0.9f);
+	//}
+	//else if (SceneNumber == Lobby)//로비일때의 버튼 그리기 동작 선택 2016.08.14 박종혁
+	//{
+	//	bool bSelected{ true };
+	//	bool bArrived{ true };
+
+	//	bool bClass{ false };
+	//	bool bStart{ false };
+	//	bool bExit{ false };
+	//	bool bLeftArrow{ false };
+	//	bool bRightArrow{ false };
+
+	//	m_pCurrentScene->GetBoolState_SelectedNArrive(bSelected, bArrived);//둘다 false일때만 그린다.
+	//	m_pCurrentScene->GetBoolState_IsButtonActivation(bLeftArrow, bRightArrow, bStart, bExit, bClass);
+
+	//	wchar_t w_str[50];
+	//	wmemset(w_str, 0, 50);
+	//	wsprintf(w_str, L"소총수");
+	//	wsprintf(w_str, L"유탄수");
+	//	wsprintf(w_str, L"저격수");
+	//	wsprintf(w_str, L"의무병");
+
+	//	//m_pd2dContext->DrawTextW(w_str, 50, m_dwExplainFormat, D2D1::RectF(0.0f, 0.0f, 600.0f, 300.0f), m_pd2dsbrBlackColor);
+
+	//	if ((!bSelected) && (!bArrived))//Lobby모드
+	//	{
+	//		m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LOGO], D2D1::RectF(0.f, 0.f, m_nWndClientWidth / 3, m_nWndClientHeight / 3), 0.9f);
+	//		//로고를 그린다.
+
+	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 300);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bStart)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+
+	//		//뒤로 가기
+	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 200);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bExit)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		//선택버튼 및 나가기 버튼 드로우
+	//	}
+	//	else if (bSelected && bArrived)//Select모드
+	//	{
+	//		mtx = D2D1::Matrix3x2F::Translation(30, 30);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		m_pd2dContext->FillGeometry(m_pd2drcBox, m_pd2dsbrBeige);
+
+	//		mtx = D2D1::Matrix3x2F::Translation((m_nWndClientWidth / 2) - 64 - (m_nWndClientWidth / 6.3f), (m_nWndClientHeight / 2) - 64);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bLeftArrow)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowLeftOn], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowLeftOff], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
+
+	//		mtx = D2D1::Matrix3x2F::Translation((m_nWndClientWidth / 2) - 64 + (m_nWndClientWidth / 8.5f), (m_nWndClientHeight / 2) - 64);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bRightArrow)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowRightOn], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowRightOff], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
+
+	//		//다른 클래스 보기
+	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 400);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bClass)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+
+	//		//시작 혹은 생성
+	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 300);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bStart)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+
+	//		//뒤로 가기
+	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 200);
+	//		m_pd2dContext->SetTransform(mtx);
+	//		if (bExit)
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		else
+	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
+	//		//선택버튼 및 나가기 버튼 드로우
+	//	}
+	//}
+	m_pd2dContext->EndDraw();
+}
+
+void CGameFramework::Release2DObjects() {
+	if (m_pd2dsbrBeige) m_pd2dsbrBeige->Release();
+	if (m_pd2drcBox) m_pd2drcBox->Release();
+	if (m_pd2dsbrGreenColor) m_pd2dsbrGreenColor->Release();
+	if (m_pd2dsbrRedColor) m_pd2dsbrRedColor->Release();
+	if (m_dwExplainFormat) m_dwExplainFormat->Release();
+
+	if (m_ppd2dBitmap) {
+		for (auto i = 0; i < m_nBitmaps; ++i)
+			m_ppd2dBitmap[i]->Release();
+	}
+	delete[]m_ppd2dBitmap;
+}
+
+bool CGameFramework::LoadImageFromFile(_TCHAR *pszstrFileName, ID2D1Bitmap1 **ppd2dBitmap, D2D_RECT_U *pd2drcImage, UINT nWidth, UINT nHeight, WICBitmapTransformOptions nFlipRotation) {
+	HRESULT hResult;
+	IWICBitmapDecoder *pwicBitmapDecoder = NULL;
+	if (FAILED(hResult = m_pwicFactory->CreateDecoderFromFilename(pszstrFileName, NULL, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pwicBitmapDecoder))) return(false);
+	IWICBitmapFrameDecode *pwicBitmapFrameDecode = NULL;
+	if (FAILED(hResult = pwicBitmapDecoder->GetFrame(0, &pwicBitmapFrameDecode))) return(false);
+	IWICBitmapSource *pwicSource = pwicBitmapFrameDecode;
+	UINT nImageWidth, nImageHeight;
+	if (FAILED(hResult = pwicSource->GetSize(&nImageWidth, &nImageHeight))) return(false);
+	IWICFormatConverter   *pwicFormatConverter = NULL;
+	IWICBitmapScaler *pwicScaler = NULL;
+	IWICBitmapClipper *pwicClipper = NULL;
+	IWICBitmapFlipRotator *pwicFlipRotator = NULL;
+	if (pd2drcImage)
+	{
+		if (pd2drcImage->left < 0) pd2drcImage->left = 0;
+		if (pd2drcImage->top < 0) pd2drcImage->top = 0;
+		if (pd2drcImage->right > nImageWidth) pd2drcImage->right = nImageWidth;
+		if (pd2drcImage->bottom > nImageHeight) pd2drcImage->bottom = nImageHeight;
+		WICRect wicRect = { pd2drcImage->left, pd2drcImage->top, (pd2drcImage->right - pd2drcImage->left), (pd2drcImage->bottom - pd2drcImage->top) };
+		if (FAILED(hResult = m_pwicFactory->CreateBitmapClipper(&pwicClipper))) return(false);
+		if (FAILED(hResult = pwicClipper->Initialize(pwicSource, &wicRect))) return(false);
+		pwicSource = pwicClipper;
+	}
+	if ((nWidth != 0) || (nHeight != 0))
+	{
+		if (nWidth == 0) nWidth = UINT(float(nHeight) / float(nImageHeight) * float(nImageWidth));
+		if (nHeight == 0) nHeight = UINT(float(nWidth) / float(nImageWidth) * float(nImageHeight));
+		if (FAILED(hResult = m_pwicFactory->CreateBitmapScaler(&pwicScaler))) return(false);
+		if (FAILED(hResult = pwicScaler->Initialize(pwicSource, nWidth, nHeight, WICBitmapInterpolationModeCubic))) return(false);
+		pwicSource = pwicScaler;
+	}
+	if (nFlipRotation != WICBitmapTransformRotate0)
+	{
+		if (FAILED(hResult = m_pwicFactory->CreateBitmapFlipRotator(&pwicFlipRotator))) return(false);
+		if (FAILED(hResult = pwicFlipRotator->Initialize(pwicSource, nFlipRotation))) return(false);
+		pwicSource = pwicFlipRotator;
+	}
+	if (FAILED(hResult = m_pwicFactory->CreateFormatConverter(&pwicFormatConverter))) return(false);
+	if (FAILED(hResult = pwicFormatConverter->Initialize(pwicSource, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, NULL, 0.f, WICBitmapPaletteTypeMedianCut))) return(false);
+	if (FAILED(hResult = m_pd2dContext->CreateBitmapFromWicBitmap(pwicFormatConverter, NULL, ppd2dBitmap))) return(false);
+
+	if (pwicBitmapFrameDecode) pwicBitmapFrameDecode->Release();
+	if (pwicBitmapDecoder) pwicBitmapDecoder->Release();
+	if (pwicFormatConverter) pwicFormatConverter->Release();
+	if (pwicClipper) pwicClipper->Release();
+	if (pwicScaler) pwicScaler->Release();
+	if (pwicFlipRotator) pwicFlipRotator->Release();
+
+	return(true);
 }
 
 //0720
@@ -364,6 +665,9 @@ void CGameFramework::FrameAdvance()
 
 	CCamera *pCamera = (m_pPlayer) ? m_pPlayer->GetCamera() : NULL;
 	if (m_pScene) m_pScene->Render(m_pd3dDeviceContext, pCamera);
+
+	//다이렉트2d
+	Render2D();
 
 	//0720
 	/*렌더 타겟은 그대로 두고 깊이 버퍼를 1.0으로 지운다. 이제 플레이어를 렌더링하면 플레이어는 무조건 그려질 것이다.*/
