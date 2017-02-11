@@ -12,7 +12,7 @@ CGameFramework::CGameFramework()
 	m_nWndClientHeight = FRAME_BUFFER_HEIGHT;
 
 	m_pScene = NULL;
-	_tcscpy_s(m_pszBuffer, _T("LapProject ("));
+	_tcscpy_s(m_pszBuffer, _T("BesideYou_ ("));
 
 	m_pPlayer = NULL;
 

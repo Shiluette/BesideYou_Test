@@ -109,7 +109,6 @@ public:
 	void UpdateShaderVariables(ID3D11DeviceContext *pd3dDeviceContext);
 };
 
-//072
 class CSpaceShipCamera : public CCamera
 {
 public:
@@ -119,7 +118,6 @@ public:
 	virtual void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
 };
 
-//072
 class CFirstPersonCamera : public CCamera
 {
 public:
@@ -129,7 +127,6 @@ public:
 	virtual void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
 };
 
-//072
 class CThirdPersonCamera : public CCamera
 {
 public:

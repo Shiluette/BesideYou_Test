@@ -1,0 +1,28 @@
+﻿  Object.cpp
+  GameFramework.cpp
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\gameframework.cpp(205): warning C4244: '인수': 'WPARAM'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  Shader.cpp
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\shader.cpp(17): warning C4267: '=': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\shader.cpp(263): warning C4244: '인수': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\shader.cpp(272): warning C4244: '인수': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Scene.cpp
+  Player.cpp
+  Mesh.cpp
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1310): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1310): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1314): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1314): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1318): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1318): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1322): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1322): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1326): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1326): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1330): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1330): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+  Camera.cpp
+  BesideYou_AnimationTest.cpp
+  코드를 생성하고 있습니다...
+  BesideYou_AnimationTest.vcxproj -> C:\Users\dydrn\OneDrive\문서\Visual Studio 2015\Projects\BesideYou\BesideYou_Test\BesideYou_Test\x64\Debug\BesideYou_AnimationTest.exe
