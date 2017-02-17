@@ -198,8 +198,65 @@ void CRotatingObject::Render(ID3D11DeviceContext *pd3dDeviceContext)
 	CGameObject::Render(pd3dDeviceContext);
 }
 
+CHeightMap::CHeightMap(LPCTSTR pFileName, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale)
+{
+	m_nWidth = nWidth;
+	m_nLength = nLength;
+	m_d3dxvScale = d3dxvScale;
+
+	BYTE *pHeightMapImage = new BYTE[m_nWidth * m_nLength];
+
+	//파일을 열고 읽는다. 높이맵 이미지는 파일 헤더가 없는 RAW이미지이다.
+	HANDLE hFile = ::CreateFile(pFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_READONLY, NULL);
+	DWORD dwBytesRead;
+	::ReadFile(hFile, pHeightMapImage, (m_nWidth * m_nLength), &dwBytesRead, NULL);
+	::CloseHandle(hFile);
+
+	m_pHeightMapImage = new BYTE[m_nWidth * m_nLength];
+	for (int y = 0; y < m_nLength; y++)
+	{
+		for (int x = 0; x < m_nWidth; x++)
+		{
+			m_pHeightMapImage[x + ((m_nLength - 1 - y)*m_nWidth)] = pHeightMapImage[x + (y*m_nWidth)];
+		}
+	}
+
+	if (pHeightMapImage) delete[] pHeightMapImage;
+}
+
+CHeightMap::~CHeightMap()
+{
+	if (m_pHeightMapImage) delete[] m_pHeightMapImage;
+	m_pHeightMapImage = NULL;
+}
+
+D3DXVECTOR3 CHeightMap::GetHeightMapNormal(int x, int z)
+{
+	//지형의 x-좌표와 z-좌표가 지형(높이 맵)의 범위를 벗어나면 지형의 법선 벡터는 y-축 방향 벡터이다.
+	if ((x < 0.0f) || (z < 0.0f) || (x >= m_nWidth) || (z >= m_nLength)) return(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+
+	/*높이 맵에서 (x, z) 좌표의 픽셀 값과 인접한 두 개의 점 (x+1, z), (z, z+1)에 대한 픽셀 값을 사용하여 법선 벡터를 계산한다.*/
+	int nHeightMapIndex = x + (z * m_nWidth);
+	int xHeightMapAdd = (x < (m_nWidth - 1)) ? 1 : -1;
+	int zHeightMapAdd = (z < (m_nLength - 1)) ? m_nWidth : -(signed)m_nWidth;
+	//(x, z), (x+1, z), (z, z+1)의 지형의 높이 값을 구한다.
+	float y1 = (float)m_pHeightMapImage[nHeightMapIndex] * m_d3dxvScale.y;
+	float y2 = (float)m_pHeightMapImage[nHeightMapIndex + xHeightMapAdd] * m_d3dxvScale.y;
+	float y3 = (float)m_pHeightMapImage[nHeightMapIndex + zHeightMapAdd] * m_d3dxvScale.y;
+
+	//vEdge1은 (0, y3, m_vScale.z) - (0, y1, 0) 벡터이다.
+	D3DXVECTOR3 vEdge1 = D3DXVECTOR3(0.0f, y3 - y1, m_d3dxvScale.z);
+	//vEdge2는 (m_vScale.x, y2, 0) - (0, y1, 0) 벡터이다.
+	D3DXVECTOR3 vEdge2 = D3DXVECTOR3(m_d3dxvScale.x, y2 - y1, 0.0f);
+	//법선 벡터는 vEdge1과 vEdge2의 외적을 정규화하면 된다.
+	D3DXVECTOR3 vNormal;
+	D3DXVec3Cross(&vNormal, &vEdge1, &vEdge2);
+	D3DXVec3Normalize(&vNormal, &vNormal);
+	return(vNormal);
+}
+
 CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int nLength,
-	int nBlockWidth, int nBlockLength, LPCTSTR pFileName, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor)
+	int nBlockWidth, int nBlockLength, LPCTSTR pFileName, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor) : CGameObject(0)
 {
 	//지형에 사용할 높이 맵의 가로, 세로의 크기이다.
 	m_nWidth = nWidth;
@@ -208,14 +265,14 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 	//지형 객체는 격자 메쉬들의 배열로 만들 것이다. 
 	//nBlockWidth, nBlockLength는 격자 메쉬 하나의 가로, 세로 크기이다. 
 	//cxQuadsPerBlock, czQuadsPerBlock은 격자 메쉬의 가로 방향과 세로 방향 사각형의 개수이다.
-	int cxQuadPerBlock = nBlockWidth ;
+	int cxQuadPerBlock = nBlockWidth;
 	int czQuadsPerBlock = nBlockLength;
 
 	//d3dxvScale는 지형을 실제로 몇 배 확대할 것인가를 나타낸다.
 	m_d3dxvScale = d3dxvScale;
 
 	//지형에 사용할 높이맵을 생성한다.
-	//m_pHeightMap = new CHeightMap(pFileName, nWidth, nLength, d3dxvScale);
+	m_pHeightMap = new CHeightMap(pFileName, nWidth, nLength, d3dxvScale);
 
 	//지형에서 가로 방향, 세로 방향으로 격자 메쉬가 몇 개가 있는가를 나타낸다.
 	int cxBlocks = (m_nWidth) / cxQuadPerBlock;
@@ -237,7 +294,7 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 			xStart = x * (nBlockWidth);
 			zStart = z * (nBlockLength);
 			//지형의 일부분을 나타내는 격자 메쉬를 생성하여 지형 메쉬에 저장한다.
-			pHeightMapGridMesh = new CHeightMapGridMesh(pd3dDevice, xStart, zStart, nBlockWidth, nBlockLength, d3dxvScale, d3dxColor, 0);
+			pHeightMapGridMesh = new CHeightMapGridMesh(pd3dDevice, xStart, zStart, nBlockWidth, nBlockLength, d3dxvScale, d3dxColor, m_pHeightMap);
 			SetMesh(pHeightMapGridMesh, x + (z*cxBlocks));
 		}
 	}

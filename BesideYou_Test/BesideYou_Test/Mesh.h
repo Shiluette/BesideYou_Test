@@ -147,4 +147,9 @@ public:
 	virtual ~CHeightMapGridMesh();
 
 	virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
+
+	//격자의 교점(정점)의 높이를 설정한다.
+	virtual float OnGetHeight(int x, int z, void *pContext);
+	//격자의 교점(정점)의 색상을 설정한다.
+	virtual D3DXCOLOR OnGetColor(int x, int z, void *pContext);
 };

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "SkinnedMesh.h"
 
+
+
 //1
 int CAnimationController::s_nBoneCount = 14;
 int CAnimationController::s_nAnimationClip = 1;
@@ -11,6 +13,10 @@ ID3D11Buffer* CAnimationController::s_pd3dcbBones = nullptr;
 //1
 CSkinnedMesh::CSkinnedMesh(ID3D11Device *pd3dDevice, char *pszFileName, int nBoneCount) : CMeshTexturedIlluminated(pd3dDevice)
 {
+	AllocConsole();
+
+	freopen("CONOUT$", "wb", stdout);
+
 	ifstream fin(pszFileName);
 	string ignore;
 
@@ -18,10 +24,10 @@ CSkinnedMesh::CSkinnedMesh(ID3D11Device *pd3dDevice, char *pszFileName, int nBon
 	{
 		// 데이터를 읽어와 필요한 정점, 인덱스, 본, 애니메이션 수 파악
 		fin >> ignore;//[FBX_META_DATA]
-		fin >> ignore >> ignore;
-		fin >> ignore;
-		fin >> ignore >> m_nVertices;
-		fin >> ignore >> m_nIndices;
+		fin >> ignore >> ignore;	//MeshCount	//띄어쓰기
+		fin >> ignore;				//[MESH_DATA]
+		fin >> ignore >> m_nVertices;	//VertexCount
+		fin >> ignore >> m_nIndices;	
 		fin >> ignore >> ignore;
 		fin >> ignore >> ignore;
 
@@ -57,7 +63,6 @@ CSkinnedMesh::CSkinnedMesh(ID3D11Device *pd3dDevice, char *pszFileName, int nBon
 		fin >> ignore;//[INDEX_DATA]
 		for (UINT i = 0; i < m_nIndices; ++i)
 			fin >> m_pnIndices[i];
-
 	}
 	fin.close();
 
@@ -92,6 +97,8 @@ CSkinnedMesh::~CSkinnedMesh()
 	if (m_pd3dxvTexCoords) delete[] m_pd3dxvTexCoords;
 	if (m_pd3dxvBoneWeights) delete[] m_pd3dxvBoneWeights;
 	if (m_pd3dxvBoneIndices) delete[] m_pd3dxvBoneIndices;
+
+	FreeConsole();
 }
 
 //1

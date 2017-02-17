@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Scene.h"
 
-
 CScene::CScene()
 {
 	m_ppShaders = NULL;
@@ -18,7 +17,7 @@ CScene::~CScene()
 }
 
 //132
-void CScene::BuildObjects(ID3D11Device *pd3dDevice)
+void CScene::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData)
 {
 	ID3D11SamplerState *pd3dSamplerState = NULL;
 	D3D11_SAMPLER_DESC d3dSamplerDesc;
@@ -53,9 +52,10 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 	pd3dsrvTexture->Release();
 	pd3dSamplerState->Release();
 
-	m_nShaders = 1 + 1 + 3;
+	//k 쉐이더 1개 추가
+	m_nShaders = 1 + 1 + 3 + 1;
 	m_ppShaders = new CShader*[m_nShaders];
-
+	
 	m_ppShaders[0] = new CSkyBoxShader();
 	m_ppShaders[0]->CreateShader(pd3dDevice);
 	m_ppShaders[0]->BuildObjects(pd3dDevice);
@@ -63,6 +63,27 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 	m_ppShaders[1] = new CTerrainShader();
 	m_ppShaders[1]->CreateShader(pd3dDevice);
 	m_ppShaders[1]->BuildObjects(pd3dDevice);
+
+	//k
+
+	/*CMaterial * pTestModelMaterial = new CMaterial();
+	pTestModelMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestModelMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestModelMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestModelMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+	CGameObject * pTestModelObj = new CGameObject(1);
+	pTestModelObj->SetMesh((*vtCharacterData.begin())->m_pModelMesh);
+	pTestModelObj->SetMaterial(pTestModelMaterial);
+
+	pTestModelMaterial->SetTexture((*vtCharacterData.begin())->m_pModelTexture);*/
+
+	CCharacterShader *pTestModelShader= new CCharacterShader();
+	pTestModelShader->CreateShader(pd3dDevice);
+	pTestModelShader->BuildObjects(pd3dDevice, vtCharacterData);
+	m_ppShaders[5] = pTestModelShader;
+
+	//k
 
 	//133
 	//재질을 생성한다.
@@ -233,7 +254,7 @@ void CScene::CreateShaderVariables(ID3D11Device *pd3dDevice)
 	m_pLights->m_pLights[0].m_fRange = 300.0f;
 	m_pLights->m_pLights[0].m_d3dxcAmbient = D3DXCOLOR(0.1f, 0.0f, 0.0f, 1.0f);
 	m_pLights->m_pLights[0].m_d3dxcDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
-	m_pLights->m_pLights[0].m_d3dxcSpecular = D3DXCOLOR(0.1f, 0.1f, 0.1f, 0.0f);
+	m_pLights->m_pLights[0].m_d3dxcSpecular = D3DXCOLOR(1.0f, 0.1f, 0.1f, 0.0f);
 	m_pLights->m_pLights[0].m_d3dxvPosition = D3DXVECTOR3(300.0f, 300.0f, 300.0f);
 	m_pLights->m_pLights[0].m_d3dxvDirection = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_pLights->m_pLights[0].m_d3dxvAttenuation = D3DXVECTOR3(1.0f, 0.001f, 0.0001f);

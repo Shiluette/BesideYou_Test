@@ -165,7 +165,6 @@ bool CGameFramework::CreateDirect3DDisplay()
 	return(true);
 }
 
-
 void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	if (m_pScene) m_pScene->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
@@ -304,33 +303,12 @@ void CGameFramework::BuildObjects()
 	CIlluminatedShader::CreateShaderVariables(m_pd3dDevice);
 
 	m_pScene = new CScene();
-	m_pScene->BuildObjects(m_pd3dDevice);
+	m_pScene->BuildObjects(m_pd3dDevice, m_vtCharacterDatas);
 
 	m_pPlayerShader = new CPlayerShader();
 	m_pPlayerShader->CreateShader(m_pd3dDevice);
 	m_pPlayerShader->BuildObjects(m_pd3dDevice);
 	m_pPlayer = m_pPlayerShader->GetPlayer();
-
-	//1
-	CMaterial * pPlayerMaterial = new CMaterial();
-	pPlayerMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pPlayerMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pPlayerMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pPlayerMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	CAnimationController * pAnimationController = new CAnimationController(0.0088f);
-	m_pPlayer = new CTerrainPlayer(1);
-	m_pPlayer->AddRef();
-	m_pPlayer->SetAnimationController(pAnimationController);
-
-	//1
-	m_pPlayer->SetMaterial(pPlayerMaterial);
-	m_pPlayer->SetMesh((*m_vtCharacterDatas.begin())->m_pModelMesh);
-	pPlayerMaterial->SetTexture((*m_vtCharacterDatas.begin())->m_pModelTexture);
-
-	//1
-	m_pPlayer->ChangeCamera(m_pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
-	//m_pPlayer->SetPlayerCharacterStatus();
-
 
 
 	/*지형의 xz-평면의 가운데에 플레이어가 위치하도록 한다. 
@@ -459,4 +437,7 @@ void CGameFramework::CharacterDataLoad()
 
 	for (auto& iter : m_vtCharacterDatas)
 		iter->AddRef();
+
+	//★
+	delete pMeshTest;
 }

@@ -112,5 +112,7 @@
   <ItemGroup>
     <FxCompile Include="Effect.fx" />
     <FxCompile Include="Light.fx" />
+    <FxCompile Include="PSSkinned.fx" />
+    <FxCompile Include="VSSkinned.fx" />
   </ItemGroup>
 </Project>

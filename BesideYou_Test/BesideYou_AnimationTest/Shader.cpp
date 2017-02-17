@@ -83,6 +83,26 @@ void CShader::CreatePixelShaderFromFile(ID3D11Device *pd3dDevice, WCHAR *pszFile
 	}
 }
 
+//컴파일된 쉐이더 코드에서 정점 쉐이더를 생성한다.
+void CShader::CreateVertexShaderFromCompiledFile(ID3D11Device *pd3dDevice, WCHAR *pszFileName, D3D11_INPUT_ELEMENT_DESC *pd3dInputLayout, UINT nElements)
+{
+	int nReadBytes = 0;
+	BYTE *pByteCode = ReadCompiledEffectFile(pszFileName, &nReadBytes);
+	HRESULT hResult = pd3dDevice->CreateVertexShader(pByteCode, nReadBytes, NULL, &m_pd3dVertexShader);
+	pd3dDevice->CreateInputLayout(pd3dInputLayout, nElements, pByteCode, nReadBytes, &m_pd3dVertexLayout);
+
+	if (pByteCode) delete[] pByteCode;
+}
+
+//컴파일된 쉐이더 코드에서 픽셀 쉐이더를 생성한다.
+void CShader::CreatePixelShaderFromCompiledFile(ID3D11Device *pd3dDevice, WCHAR *pszFileName)
+{
+	int nReadBytes = 0;
+	BYTE *pByteCode = ReadCompiledEffectFile(pszFileName, &nReadBytes);
+	HRESULT hResult = pd3dDevice->CreatePixelShader(pByteCode, nReadBytes, NULL, &m_pd3dPixelShader);
+
+	if (pByteCode) delete[] pByteCode;
+}
 
 //CShader 클래스의 CreateShader() 멤버 함수와 Render() 멤버 함수를 다음과 같이 정의한다.
 void CShader::CreateShader(ID3D11Device *pd3dDevice)
@@ -220,6 +240,7 @@ void CShader::OnPrepareRender(ID3D11DeviceContext *pd3dDeviceContext)
 	pd3dDeviceContext->PSSetShader(m_pd3dPixelShader, NULL, 0);
 }
 
+
 void CSceneShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
 	int xObjects = 10, yObjects = 10, zObjects = 10, i = 0;
@@ -349,6 +370,7 @@ ID3D11Buffer *CInstancingShader::CreateInstanceBuffer(ID3D11Device *pd3dDevice, 
 	pd3dDevice->CreateBuffer(&d3dBufferDesc, (pBufferData) ? &d3dBufferData : NULL, &pd3dInstanceBuffer);
 	return(pd3dInstanceBuffer);
 }
+
 void CInstancingShader::BuildObjects(ID3D11Device *pd3dDevice, CHeightMapTerrain *pHeightMapTerrain, CMaterial *pMaterial, CTexture *pTexture, int k)
 {
 	m_pMaterial = pMaterial;
@@ -495,7 +517,6 @@ CGameObject *CShader::PickObjectByRayIntersection(D3DXVECTOR3 *pd3dxvPickPositio
 	}
 	return(pSelectedObject);
 }
-
 
 CTerrainShader::CTerrainShader()
 {
@@ -792,4 +813,75 @@ void CDetailTexturedIlluminatedShader::CreateShader(ID3D11Device *pd3dDevice)
 	UINT nElements = ARRAYSIZE(d3dInputElements);
 	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSDetailTexturedLightingColor", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
 	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSDetailTexturedLightingColor", "ps_5_0", &m_pd3dPixelShader);
+}
+
+//k
+CObjectsShader::CObjectsShader(int nObjects)
+{
+	//공간을 미리 할당한다. 속도 측면에서 훨씬 이득
+	m_vpObjects.reserve(nObjects);
+
+	m_pMaterial = nullptr;
+}
+
+//k
+CObjectsShader::~CObjectsShader()
+{
+	if (m_pMaterial)
+		m_pMaterial->Release();
+}
+
+//k
+CCharacterShader::CCharacterShader(int nObjects) : CObjectsShader(nObjects)
+{
+	//?
+	////이거 안해도되지않나
+	//m_vpObjects.reserve(nObjects);
+
+	////이것도 안해도되지않나
+	//m_pMaterial = NULL;
+
+	//m_vpObjects.clear();
+}
+
+//k
+CCharacterShader::~CCharacterShader()
+{
+}
+
+//k
+void CCharacterShader::CreateShader(ID3D11Device *pd3dDevice)
+{
+	D3D11_INPUT_ELEMENT_DESC d3dInputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 4, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	UINT nElements = ARRAYSIZE(d3dInputElements);
+	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSSkinned", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
+	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSSkinned", "ps_5_0", &m_pd3dPixelShader);
+}
+
+//k
+void CCharacterShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData)
+{
+	m_nObjects = 1;
+	m_ppObjects = new CGameObject*[m_nObjects];
+
+	CMaterial *pTestMaterial = new CMaterial();
+	pTestMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+	CGameObject * pTestModel = new CGameObject(1);
+	pTestModel->SetMesh((*vtCharacterData.begin())->m_pModelMesh);
+	pTestModel->SetTexture((*vtCharacterData.begin())->m_pModelTexture);
+	pTestModel->SetPosition(300, 800, 300);
+	pTestModel->SetMaterial(pTestMaterial);
+
+	m_ppObjects[0] = pTestModel;
 }

@@ -292,9 +292,11 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
-	D3DXVECTOR3 d3dxvScale(10.0f, 2.0f, 10.0);
-	D3DXCOLOR d3dxColor(0.3f, 0.3f, 1.0f, 1.0f);
+	D3DXVECTOR3 d3dxvScale(8.0f, 3.0f, 8.0f);
+	D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
 
-	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 251, 251, 251, 251, NULL, d3dxvScale, d3dxColor);
+	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap2.raw"), d3dxvScale, d3dxColor);
+
+	//터레인의 초기위치
 	m_ppObjects[0]->SetPosition(-1250, 0, -1250);
 }

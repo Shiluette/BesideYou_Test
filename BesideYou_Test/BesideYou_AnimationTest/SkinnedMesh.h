@@ -71,6 +71,10 @@ public:
 	CAnimationController(float fSize);
 	~CAnimationController();
 
+	void MakeBoneMatrix(int nNowframe, int nAnimationNum, int nBoneNum, D3DXMATRIX& BoneMatrix);
+	void UpdateBoneTransform(ID3D11DeviceContext *pd3dDeviceContext, int nAnimationNum, int nNowFrame);
+	// 뼈대 상수 버퍼 설정
+
 	static void LoadAnimationSet(ID3D11Device* pd3dDevice);
 	static void CreateConstantBuffer(ID3D11Device *pd3dDevice);
 

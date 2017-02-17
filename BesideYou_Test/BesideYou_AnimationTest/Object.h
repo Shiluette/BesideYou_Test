@@ -37,6 +37,7 @@ public:
 	//1
 	CTexture						*m_pTexture;
 	void SetTexture(CTexture *pTexture);
+
 };
 
 //게임 객체는 하나 이상의 텍스쳐를 가질 수 있다. CTexture는 텍스쳐를 관리하기 위한 클래스이다.
@@ -76,8 +77,13 @@ public:
 	void UpdateSamplerShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, int nIndex = 0, int nSlot = 0);
 };
 
+class CShader;
+
 class CGameObject
 {
+protected:
+	CShader * m_pShader;
+
 public:
 	CGameObject(int nMeshes = 0);
 	virtual ~CGameObject();
@@ -149,7 +155,9 @@ public:
 	AABB m_bcMeshBoundingCube;
 
 	void SetMesh(CMesh *pMesh, int nIndex = 0);
-	CMesh *GetMesh(int nIndex = 0) { return(m_ppMeshes[nIndex]); }
+	CMesh *GetMesh(int nIndex = 0) { return(m_ppMeshes[nIndex]); };
+
+	
 
 public:
 	//게임 객체는 하나의 재질을 가질 수 있다.
@@ -279,6 +287,7 @@ struct ModelContainer
 	string		m_sModelName;
 	CMesh*		m_pModelMesh;
 	CTexture*	m_pModelTexture;
+
 	void AddRef()
 	{
 		m_pModelMesh->AddRef();

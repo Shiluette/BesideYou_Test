@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Mesh.h"
+#include "Object.h"
 
 CMesh::CMesh(ID3D11Device *pd3dDevice)
 {
@@ -60,8 +61,7 @@ void CMesh::Render(ID3D11DeviceContext *pd3dDeviceContext)
 	pd3dDeviceContext->IASetVertexBuffers(m_nSlot, m_nBuffers, m_ppd3dVertexBuffers, m_pnVertexStrides, m_pnVertexOffsets);
 	//인덱스 버퍼가 있으면 인덱스 버퍼를 디바이스 컨텍스트에 연결한다.
 	if (m_pd3dIndexBuffer) pd3dDeviceContext->IASetIndexBuffer(m_pd3dIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	pd3dDeviceContext->IASetPrimitiveTopology(
-		m_d3dPrimitiveTopology);
+	pd3dDeviceContext->IASetPrimitiveTopology(m_d3dPrimitiveTopology);
 	if (m_pd3dRasterizerState) pd3dDeviceContext->RSSetState(m_pd3dRasterizerState);
 
 	/*인덱스 버퍼가 있으면 인덱스 버퍼를 사용하여 메쉬를 렌더링하고 없으면 정점 버퍼만을 사용하여 메쉬를 렌더링한다.*/
@@ -405,33 +405,33 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	m_nLength = nLength;
 	m_d3dxvScale = d3dxvScale;
 
-	//float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
+	float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
 	///*xStart와 zStart는 격자의 시작 위치(x-좌표와 z-좌표)를 나타낸다.
 	//지형을 격자들의 이차원 배열로 만들 것이기 때문에 지형에서 각 격자의
 	//시작 위치를 나타내는 정보가 필요하다. <그림 18>은 격자의 교점(정점)을
 	//나열하는 순서를 보여준다.*/
 
-	//for (int i = 0, z = zStart; z < (zStart + nLength); z++)
-	//{
-	//	for (int x = xStart; x < (xStart + nWidth); x++, i++)
-	//	{
-	//		//정점의 높이와 색상을 높이 맵으로부터 구한다.
-	//		fHeight = OnGetHeight(x, z, pContext);
-	//		m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), fHeight, (z*m_d3dxvScale.z));
-	//		pd3dxColors[i] = OnGetColor(x, z, pContext) + d3dxColor;
-	//		if (fHeight < fMinHeight) fMinHeight = fHeight;
-	//		if (fHeight > fMaxHeight) fMaxHeight = fHeight;
-	//	}
-	//}
-
 	for (int i = 0, z = zStart; z < (zStart + nLength); z++)
+	{
+		for (int x = xStart; x < (xStart + nWidth); x++, i++)
+		{
+			//정점의 높이와 색상을 높이 맵으로부터 구한다.
+			fHeight = OnGetHeight(x, z, pContext);
+			m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), fHeight, (z*m_d3dxvScale.z));
+			pd3dxColors[i] = OnGetColor(x, z, pContext) + d3dxColor;
+			if (fHeight < fMinHeight) fMinHeight = fHeight;
+			if (fHeight > fMaxHeight) fMaxHeight = fHeight;
+		}
+	}
+
+	/*for (int i = 0, z = zStart; z < (zStart + nLength); z++)
 	{
 		for (int x = xStart; x < (xStart + nWidth); x++, i++)
 		{
 			m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), 0, (z*m_d3dxvScale.z));
 			pd3dxColors[i] = d3dxColor;
 		}
-	}
+	}*/
 
 	D3D11_BUFFER_DESC d3dBufferDesc;
 	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
@@ -509,9 +509,44 @@ void CHeightMapGridMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
 	//071
 	/*D3D11_CULL_NONE은 은면 제거를 하지 않음을 나타낸다. 즉, 모든 프리미티브를 그린다. D3D11_FILL_WIREFRAME은 프리미티브를 선분으로만 그린다.*/
 	d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
-	d3dRasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	/*은면 제거를 하지 않고 그리면 위의 두 가지 경우(16개의 인덱스를 사용한 경우와 18개의 인덱스를 사용한 경우)의 출력의 결과가 같을 것이다. 하지만 은면 제거를 하도록 하면 18개의 인덱스를 사용한 경우에만 제대로 그려질 것이다.*/
 	//d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
 
-	pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
+	//pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
+}
+
+float CHeightMapGridMesh::OnGetHeight(int x, int z, void *pContext)
+{
+	//높이 맵 객체의 높이 맵 이미지의 픽셀 값을 지형의 높이로 반환한다. 
+	CHeightMap *pHeightMap = (CHeightMap *)pContext;
+	BYTE *pHeightMapImage = pHeightMap->GetHeightMapImage();
+	D3DXVECTOR3 d3dxvScale = pHeightMap->GetScale();
+	int cxTerrain = pHeightMap->GetHeightMapWidth();
+	float fHeight = pHeightMapImage[x + (z*cxTerrain)] * d3dxvScale.y;
+	return(fHeight);
+}
+
+D3DXCOLOR CHeightMapGridMesh::OnGetColor(int x, int z, void *pContext)
+{
+	//조명의 방향 벡터(정점에서 조명까지의 벡터)이다.
+	D3DXVECTOR3 d3dxvLightDirection = D3DXVECTOR3(-1.0f, 1.0f, 1.0f);
+	D3DXVec3Normalize(&d3dxvLightDirection, &d3dxvLightDirection);
+	CHeightMap *pHeightMap = (CHeightMap *)pContext;
+	D3DXVECTOR3 d3dxvScale = pHeightMap->GetScale();
+	//조명의 색상(세기)이다. 
+	D3DXCOLOR vIncidentLight(0.9f, 0.8f, 0.4f, 1.0f);
+	/*정점 (x, z)에서 조명이 반사되는 양은 정점 (x, z)의 법선 벡터와 조명의 방향 벡터의 내적(cos)과
+	인접한 3개의 점 (x+1, z), (x, z+1), (x+1, z+1)의 법선 벡터와 조명의 방향 벡터의 내적을 평균하여 구한다.
+	정점 (x, z)의 색상은 조명 색상(세기)과 반사되는 양을 곱한 값이다.*/
+
+	float fScale = D3DXVec3Dot(&pHeightMap->GetHeightMapNormal(x, z), &d3dxvLightDirection);
+	fScale += D3DXVec3Dot(&pHeightMap->GetHeightMapNormal(x + 1, z), &d3dxvLightDirection);
+	fScale += D3DXVec3Dot(&pHeightMap->GetHeightMapNormal(x + 1, z + 1), &d3dxvLightDirection);
+	fScale += D3DXVec3Dot(&pHeightMap->GetHeightMapNormal(x, z + 1), &d3dxvLightDirection);
+	fScale = (fScale / 4.0f) + 0.05f;
+	if (fScale > 1.0f) fScale = 1.0f;
+	if (fScale < 0.25f) fScale = 0.25f;
+	D3DXCOLOR d3dxColor = fScale * vIncidentLight;
+	return(d3dxColor);
 }

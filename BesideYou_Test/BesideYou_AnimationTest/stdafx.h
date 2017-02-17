@@ -25,6 +25,8 @@
 #define PS_SLOT_TEXTURE		0x00
 #define PS_SLOT_SAMPLER_STATE		0x00
 
+
+
 // Windows 헤더 파일:
 #include <windows.h>
 
@@ -49,6 +51,6 @@
 #include <string>
 #include <vector>
 using namespace std;
-const int Bone_count = 18;
+const int Bone_count = 14;
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.

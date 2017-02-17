@@ -8,6 +8,7 @@ class CGameFramework
 {
 public:
 	CPlayerShader *m_pPlayerShader;
+
 private:
 	HINSTANCE m_hInstance;
 	HWND m_hWnd;
@@ -78,13 +79,12 @@ public:
 	//1
 	void CharacterDataLoad();
 
-	//1
-	vector<ModelContainer*> m_vtCharacterDatas;
+	
 private:
 	CCamera *m_pCamera;
 
-	
-
+	//1
+	vector<ModelContainer*> m_vtCharacterDatas;
 };
 
 

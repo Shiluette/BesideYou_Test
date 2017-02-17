@@ -32,6 +32,10 @@ public:
 	void CreateVertexShaderFromFile(ID3D11Device *pd3dDevice, WCHAR *pszFileName, LPCSTR pszShaderName, LPCSTR pszShaderModel, ID3D11VertexShader **ppd3dVertexShader, D3D11_INPUT_ELEMENT_DESC *pd3dInputLayout, UINT nElements, ID3D11InputLayout **ppd3dVertexLayout);
 	void CreatePixelShaderFromFile(ID3D11Device *pd3dDevice, WCHAR *pszFileName, LPCSTR pszShaderName, LPCSTR pszShaderModel, ID3D11PixelShader **ppd3dPixelShader);
 
+	//컴파일된 이펙트 파일에서 정점 쉐이더와 픽셀 쉐이더를 생성하는 함수이다.
+	void CreateVertexShaderFromCompiledFile(ID3D11Device *pd3dDevice, WCHAR *pszFileName, D3D11_INPUT_ELEMENT_DESC *pd3dInputLayout, UINT nElements);
+	void CreatePixelShaderFromCompiledFile(ID3D11Device *pd3dDevice, WCHAR *pszFileName);
+
 	virtual void CreateShader(ID3D11Device *pd3dDevice);
 
 	static void CreateShaderVariables(ID3D11Device *pd3dDevice);
@@ -61,6 +65,34 @@ protected:
 public:
 	virtual CGameObject *PickObjectByRayIntersection(D3DXVECTOR3 *pd3dxvPickPosition, 
 		D3DXMATRIX *pd3dxmtxView, MESHINTERSECTINFO *pd3dxIntersectInfo);
+};
+
+//k
+class CObjectsShader : public CShader
+{
+public:
+	CObjectsShader(int nObjects = 1);
+	virtual ~CObjectsShader();
+
+protected:
+	vector<CGameObject*> m_vpObjects;
+	
+	//오브젝트쉐이더는 재질을 가지고 있다.
+	CMaterial * m_pMaterial;
+
+};
+
+//k
+class CCharacterShader : public CObjectsShader
+{
+public:
+	CCharacterShader(int nObjects = 1);
+	~CCharacterShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+
+	//k
+	virtual void BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData);
 };
 
 class CDiffusedShader : public CShader
@@ -108,6 +140,8 @@ public:
 
 	virtual void CreateShader(ID3D11Device *pd3dDevice);
 };
+
+
 
 //플레이어를 렌더링하기 위한 쉐이더 클래스이다.
 class CPlayerShader : public CIlluminatedShader
@@ -207,13 +241,3 @@ public:
 
 	CHeightMapTerrain *GetTerrain();
 };
-
-////1
-//class CCharacterShader : public CShader
-//{
-//public:
-//	CCharacterShader(int nObjects = 1);
-//	~CCharacterShader();
-//
-//	virtual void CreateShader(ID3D11Device *pd3dDevice);
-//};

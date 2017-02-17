@@ -54,6 +54,10 @@ public:
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
 	void BuildObjects(ID3D11Device *pd3dDevice);
+
+	//k
+	void BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData);
+
 	void ReleaseObjects();
 
 	bool ProcessInput();

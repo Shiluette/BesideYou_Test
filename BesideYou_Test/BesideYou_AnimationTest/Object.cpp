@@ -1,3 +1,5 @@
+
+
 #include "stdafx.h"
 #include "Object.h"
 #include "Shader.h"
@@ -6,6 +8,7 @@
 CMaterial::CMaterial()
 {
 	m_nReferences = 0;
+
 }
 
 CMaterial::~CMaterial()
@@ -18,6 +21,7 @@ void CMaterial::SetTexture(CTexture *pTexture)
 	m_pTexture = pTexture;
 	if (m_pTexture) m_pTexture->AddRef();
 }
+
 
 CGameObject::CGameObject(int nMeshes)
 {
@@ -125,6 +129,7 @@ void CGameObject::AddRef()
 {
 	m_nReferences++;
 }
+
 void CGameObject::Release()
 {
 	if (m_nReferences > 0) m_nReferences--;
@@ -147,10 +152,10 @@ void CGameObject::SetMesh(CMesh *pMesh, int nIndex)
 	}
 }
 
-
 void CGameObject::Animate(float fTimeElapsed)
 {
 }
+
 //객체를 렌더링하는 것은 객체에 연결된 메쉬를 렌더링하는 것이다.
 void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
@@ -181,7 +186,6 @@ void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamer
 	}
 }
 
-
 void CGameObject::SetPosition(float x, float y, float z)
 {
 	m_d3dxmtxWorld._41 = x;
@@ -207,8 +211,6 @@ void CGameObject::SetTexture(CTexture *pTexture)
 	m_pTexture = pTexture;
 	if (m_pTexture) m_pTexture->AddRef();
 }
-
-
 
 CRotatingObject::CRotatingObject(int nMeshes) : CGameObject(nMeshes)
 {
