@@ -245,14 +245,14 @@ void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
 //0720
 void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
-	m_nObjects = 1;
+	m_nObjects = 2;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
 	ID3D11DeviceContext *pd3dDeviceContext = NULL;
 	pd3dDevice->GetImmediateContext(&pd3dDeviceContext);
 
 	CMesh *pAirplaneMesh = new CAirplaneMesh(pd3dDevice, 20.0f, 20.0f, 4.0f, D3DCOLOR_XRGB(0, 255, 0));
-	CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer(pd3dDevice);
+	CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer();
 	pAirplanePlayer->SetMesh(pAirplaneMesh);
 	pAirplanePlayer->CreateShaderVariables(pd3dDevice);
 	pAirplanePlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
@@ -264,6 +264,16 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 
 	pAirplanePlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
 	m_ppObjects[0] = pAirplanePlayer;
+
+	//2.19
+	CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 4.0f, 12.0f, 4.0f, D3DXCOLOR(0.5f, 0.0f, 0.0f, 0.0f));
+	CTerrainPlayer *pTerrainPlayer = new CTerrainPlayer(1);
+	pTerrainPlayer->SetMesh(pCubeMesh);
+	pTerrainPlayer->CreateShaderVariables(pd3dDevice);
+	pTerrainPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
+	pTerrainPlayer->SetPosition(D3DXVECTOR3(0.0f, 200.0f, 0.0f));
+	m_ppObjects[1] = pTerrainPlayer;
+	//
 
 	if (pd3dDeviceContext) pd3dDeviceContext->Release();
 }

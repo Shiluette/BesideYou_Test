@@ -6,7 +6,7 @@
 class CPlayer : public CGameObject
 {
 public:
-	CPlayer();
+	CPlayer(int nMeshes = 1);
 	virtual ~CPlayer();
 
 	//플레이어의 현재 카메라를 설정하고 반환하는 멤버 함수를 선언한다.
@@ -98,13 +98,26 @@ public:
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
 };
 
-//072
+
 class CAirplanePlayer : public CPlayer
 {
 public:
-	CAirplanePlayer(ID3D11Device *pd3dDevice);
+	CAirplanePlayer(int nMeshes = 1);
 	virtual ~CAirplanePlayer();
 
 	virtual void ChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+};
+
+//2.19	Terrain의 영향을 받는 Player를 표현하기 위해 만들어진 클래스
+class CTerrainPlayer : public CPlayer
+{
+public:
+	CTerrainPlayer(int nMeshes = 1);
+	virtual ~CTerrainPlayer() {};
+
+	virtual void ChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMode, float fTimeElapsed);
+
+	virtual void OnPlayerUpdated(float fTimeElapsed);
+	virtual void OnCameraUpdated(float fTimeElapsed);
 };

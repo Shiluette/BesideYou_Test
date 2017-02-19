@@ -335,6 +335,7 @@ void CGameFramework::BuildObjects()
 
 	m_pScene = new CScene();
 	m_pScene->BuildObjects(m_pd3dDevice);
+
 }
 
 //다이렉트2d

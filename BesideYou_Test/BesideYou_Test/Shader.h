@@ -94,5 +94,5 @@ public:
 	CTerrainShader();
 	virtual ~CTerrainShader();
 
-	virtual void BuildObjects(ID3D11Device * pdDevice);
+	virtual void BuildObjects(ID3D11Device * pd3dDevice);
 };

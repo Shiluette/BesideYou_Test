@@ -255,6 +255,57 @@ D3DXVECTOR3 CHeightMap::GetHeightMapNormal(int x, int z)
 	return(vNormal);
 }
 
+//2.19
+float CHeightMap::GetHeight(float fx, float fz, bool bReverseQuad)
+{
+	//지형의 좌표 (fx, fz)에서 높이 맵의 좌표를 계산한다.
+	fx = fx / m_d3dxvScale.x;
+	fz = fz / m_d3dxvScale.z;
+	//높이 맵의 x-좌표와 z-좌표가 높이 맵의 범위를 벗어나면 지형의 높이는 0이다.
+	if ((fx < 0.0f) || (fz < 0.0f) || (fx >= m_nWidth) || (fz >= m_nLength)) return(0.0f);
+	//높이 맵의 좌표의 정수 부분과 소수 부분을 계산한다.
+	int x = (int)fx;
+	int z = (int)fz;
+	float fxPercent = fx - x;
+	float fzPercent = fz - z;
+
+	float fTopLeft = m_pHeightMapImage[x + (z*m_nWidth)];
+	float fTopRight = m_pHeightMapImage[(x + 1) + (z*m_nWidth)];
+	float fBottomLeft = m_pHeightMapImage[x + ((z + 1)*m_nWidth)];
+	float fBottomRight = m_pHeightMapImage[(x + 1) + ((z + 1)*m_nWidth)];
+
+	if (bReverseQuad)
+	{
+		/*지형의 삼각형들이 오른쪽에서 왼쪽 방향으로 나열되는 경우이다.
+		<그림 12>의 오른쪽은 (fzPercent < fxPercent)인 경우이다.
+		이 경우 TopLeft의 픽셀 값은 (fTopLeft = fTopRight + (fBottomLeft - fBottomRight))로 근사한다.
+		<그림 12>의 왼쪽은 (fzPercent ≥ fxPercent)인 경우이다.
+		이 경우 BottomRight의 픽셀 값은 (fBottomRight = fBottomLeft + (fTopRight - fTopLeft))로 근사한다.*/
+		if (fzPercent < (1.0f - fxPercent))
+			fTopRight = fTopLeft + (fBottomRight - fBottomLeft);
+		else
+			fBottomLeft = fTopLeft + (fBottomRight - fTopRight);
+	}
+	else
+	{
+		/*지형의 삼각형들이 왼쪽에서 오른쪽 방향으로 나열되는 경우이다.
+		<그림 13>의 왼쪽은 (fzPercent < (1.0f - fxPercent))인 경우이다.
+		이 경우 TopRight의 픽셀 값은 (fTopRight = fTopLeft + (fBottomRight - fBottomLeft))로 근사한다.
+		<그림 13>의 오른쪽은 (fzPercent ≥ (1.0f - fxPercent))인 경우이다.
+		이 경우 BottomLeft의 픽셀 값은 (fBottomLeft = fTopLeft + (fBottomRight - fTopRight))로 근사한다.*/
+
+		if (fzPercent >= fxPercent)
+			fBottomRight = fBottomLeft + (fTopRight - fTopLeft);
+		else
+			fTopLeft = fTopRight + (fBottomLeft - fBottomRight);
+	}
+	//사각형의 네 점을 보간하여 높이(픽셀 값)를 계산한다.
+	float fTopHeight = fTopLeft * (1 - fxPercent) + fTopRight * fxPercent;
+	float fBottomHeight = fBottomLeft * (1 - fxPercent) + fBottomRight * fxPercent;
+	float fHeight = fBottomHeight * (1 - fzPercent) + fTopHeight * fzPercent;
+	return(fHeight);
+}
+
 CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int nLength,
 	int nBlockWidth, int nBlockLength, LPCTSTR pFileName, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor) : CGameObject(0)
 {

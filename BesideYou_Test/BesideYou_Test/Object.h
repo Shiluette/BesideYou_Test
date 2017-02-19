@@ -80,6 +80,8 @@ public:
 	CHeightMap(LPCTSTR pFileName, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale);
 	~CHeightMap(void);
 
+	//높이 맵 이미지에서 (x, z) 위치의 픽셀 값에 기반한 지형의 높이를 반환한다.
+	float GetHeight(float x, float z, bool bReverseQuad = false);
 	//높이 맵 이미지에서 (x, z) 위치의 법선 벡터를 반환한다.
 	D3DXVECTOR3 GetHeightMapNormal(int x, int z);
 	D3DXVECTOR3 GetScale() { return(m_d3dxvScale); }
@@ -102,4 +104,9 @@ public:
 	CHeightMapTerrain(ID3D11Device *pd3dDevice = NULL, int nWidth = 0, int nLength = 0,
 		int nBlockWidth = 0, int nBlockLength = 0, LPCTSTR pFileName = NULL, D3DXVECTOR3 d3dxvScale = D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXCOLOR d3dxColor = (0.5f, 0.5f, 0.5f));
 	virtual ~CHeightMapTerrain();
+
+	//지형의 실제 높이를 반환한다. 높이 맵의 높이에 스케일을 곱한 값이다.
+	float GetHeight(float x, float z, bool bReverseQuad = false) { return(m_pHeightMap->GetHeight(x, z, bReverseQuad) * m_d3dxvScale.y); }
+
+	D3DXVECTOR3 GetScale() { return(m_d3dxvScale); }
 };
