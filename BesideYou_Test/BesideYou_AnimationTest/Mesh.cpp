@@ -127,6 +127,22 @@ ID3D11Buffer *CMesh::CreateBuffer(ID3D11Device *pd3dDevice, UINT nStride, int nE
 	return(pd3dBuffer);
 }
 
+//2.21
+void CMesh::CalculateBoundingCube()
+{
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (int i = 0; i < m_nVertices; i++)
+	{
+		if (m_pd3dxvPositions[i].x < m_bcBoundingCube.m_d3dxvMinimum.x) m_bcBoundingCube.m_d3dxvMinimum.x = m_pd3dxvPositions[i].x;
+		if (m_pd3dxvPositions[i].x > m_bcBoundingCube.m_d3dxvMaximum.x) m_bcBoundingCube.m_d3dxvMaximum.x = m_pd3dxvPositions[i].x;
+		if (m_pd3dxvPositions[i].y < m_bcBoundingCube.m_d3dxvMinimum.y) m_bcBoundingCube.m_d3dxvMinimum.y = m_pd3dxvPositions[i].y;
+		if (m_pd3dxvPositions[i].y > m_bcBoundingCube.m_d3dxvMaximum.y) m_bcBoundingCube.m_d3dxvMaximum.y = m_pd3dxvPositions[i].y;
+		if (m_pd3dxvPositions[i].z < m_bcBoundingCube.m_d3dxvMinimum.z) m_bcBoundingCube.m_d3dxvMinimum.z = m_pd3dxvPositions[i].z;
+		if (m_pd3dxvPositions[i].z > m_bcBoundingCube.m_d3dxvMaximum.z) m_bcBoundingCube.m_d3dxvMaximum.z = m_pd3dxvPositions[i].z;
+	}
+}
+
 CMeshDiffused::CMeshDiffused(ID3D11Device *pd3dDevice) : CMesh(pd3dDevice)
 {
 	m_pd3dColorBuffer = NULL;
@@ -526,7 +542,8 @@ int CMesh::CheckRayIntersection(D3DXVECTOR3 *pd3dxvRayPosition, D3DXVECTOR3 *pd3
 	//모델 좌표계의 광선의 시작점(pd3dxvRayPosition)과 
 	//방향이 주어질 때 메쉬와의 충돌 검사를 한다.
 	int nIntersections = 0;
-	BYTE *pbPositions = (BYTE *)m_pd3dxvPositions + m_pnVertexOffsets[0];
+	//BYTE *pbPositions = (BYTE *)m_pd3dxvPositions + m_pnVertexOffsets[0];
+	BYTE *pbPositions = (BYTE *)m_pd3dxvPositions;
 
 	int nOffset = (m_d3dPrimitiveTopology == D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST) ? 3 : 1;
 	
@@ -1706,4 +1723,112 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 
 	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(xStart*m_d3dxvScale.x, fMinHeight, zStart*m_d3dxvScale.z);
 	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3((xStart + nWidth)*m_d3dxvScale.x, fMaxHeight, (zStart + nLength)*m_d3dxvScale.z);
+}
+
+//2.21
+CAssetMesh::CAssetMesh(ID3D11Device *pd3dDevice, const std::string& filename, unsigned int type) : CMeshTexturedIlluminated(pd3dDevice)
+{
+	m_uitype = type;
+	std::ifstream in(filename);
+	std::string ignore;
+
+	in >> ignore//[FBX_META_DATA]
+		>> ignore//MeshCOUNT:
+		>> ignore;//1
+	in >> ignore;//MESH_DATA
+	in >> ignore >> m_nVertices;//VertexCount	
+	in >> ignore >> m_nIndices;//IndexCount;
+	in >> ignore >> ignore;//BoneCount;
+	in >> ignore >> ignore;//AnimationClips;
+
+	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
+	D3DXVECTOR2* pd3dxvTexCoords = new D3DXVECTOR2[m_nVertices];
+	D3DXVECTOR3 *pd3dxvNormals = new D3DXVECTOR3[m_nVertices];
+	m_pnIndices = new UINT[m_nIndices];
+	//생성
+	in >> ignore;
+	for (int i = 0; i < m_nVertices; ++i)
+	{
+		in >> ignore >> m_pd3dxvPositions[i].x >> m_pd3dxvPositions[i].y >> m_pd3dxvPositions[i].z;
+		in >> ignore >> pd3dxvNormals[i].x >> pd3dxvNormals[i].y >> pd3dxvNormals[i].z;
+		in >> ignore >> pd3dxvTexCoords[i].x >> pd3dxvTexCoords[i].y;
+	}
+	in >> ignore;
+
+	for (int i = 0; i < m_nVertices; ++i)
+	{
+		m_pd3dxvPositions[i].x *= 100.0f;
+		m_pd3dxvPositions[i].y *= 100.0f;
+		m_pd3dxvPositions[i].z *= 100.0f;
+
+	}
+
+	//if (m_uitype == CAssetMesh::CharacterWeapon)
+	//{
+	//	D3DXMATRIX mtxTranslate;
+	//	D3DXMATRIX mtxRotate;
+	//	D3DXMatrixTranslation(&mtxTranslate, -150.0f, 0.0f, 200.0f);//총이 뜨면, z를 줄임, 총이 손보다 앞에 있으면, x를 줄임
+	//	D3DXMatrixRotationX(&mtxRotate, -90.0f);
+	//	mtxRotate *= mtxTranslate;
+	//	for (int i = 0; i < m_nVertices; i++)
+	//		D3DXVec3TransformCoord(&m_pd3dxvPositions[i], &m_pd3dxvPositions[i], &mtxRotate);
+	//}
+
+	for (unsigned int i = 0; i < m_nIndices; i++)
+	{
+		in >> m_pnIndices[i];
+	}
+	in.close();//file close
+	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	float previousY = 0;
+	float previousZ = 0;
+
+	//버텍스 버퍼 초기화
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3)* m_nVertices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA d3dBufferData;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pd3dxvPositions;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
+
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3)* m_nVertices;//Buffer ByteWidth
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = pd3dxvNormals;//Sysmem pointer.
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dNormalBuffer);
+
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR2)* m_nVertices;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = pd3dxvTexCoords;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dTexCoordBuffer);
+
+	ID3D11Buffer *pd3dBuffers[3] = { m_pd3dPositionBuffer, m_pd3dNormalBuffer, m_pd3dTexCoordBuffer };
+	UINT pnBufferStrides[3] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR2) };
+	UINT pnBufferOffsets[3] = { 0, 0, 0 };
+	AssembleToVertexBuffer(3, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
+
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(UINT)* m_nIndices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pnIndices;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dIndexBuffer);
+
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(FLT_MAX, FLT_MAX, FLT_MAX);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	CalculateBoundingCube();
+
+	delete[] pd3dxvNormals;
+	delete[] pd3dxvTexCoords;
+}
+
+CAssetMesh::~CAssetMesh()
+{
 }

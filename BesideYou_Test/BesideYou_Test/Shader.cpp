@@ -305,7 +305,7 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 	D3DXVECTOR3 d3dxvScale(8.0f, 3.0f, 8.0f);
 	D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
 
-	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap2.raw"), d3dxvScale, d3dxColor);
+	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
 
 	//터레인의 초기위치
 	m_ppObjects[0]->SetPosition(-1250, 0, -1250);

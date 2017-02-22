@@ -65,7 +65,6 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCh
 	m_ppShaders[1]->BuildObjects(pd3dDevice);
 
 	//k
-
 	/*CMaterial * pTestModelMaterial = new CMaterial();
 	pTestModelMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 	pTestModelMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
@@ -78,12 +77,17 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCh
 
 	pTestModelMaterial->SetTexture((*vtCharacterData.begin())->m_pModelTexture);*/
 
-	CCharacterShader *pTestModelShader= new CCharacterShader();
+	/*CCharacterShader *pTestModelShader= new CCharacterShader(1);
 	pTestModelShader->CreateShader(pd3dDevice);
 	pTestModelShader->BuildObjects(pd3dDevice, vtCharacterData);
-	m_ppShaders[5] = pTestModelShader;
-
+	m_ppShaders[5] = pTestModelShader;*/
 	//k
+
+	//2.21
+	CTexturedIlluminatedShader * pTestShader = new CTexturedIlluminatedShader();
+	pTestShader->CreateShader(pd3dDevice);
+	pTestShader->BuildObjects(pd3dDevice, vtCharacterData);
+	m_ppShaders[5] = pTestShader;
 
 	//133
 	//재질을 생성한다.
@@ -146,7 +150,7 @@ bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
 		선택된 객체가 있으면 그 객체를 비활성화한다.*/
 
 		//if (m_pSelectedObject = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam))) m_pSelectedObject->SetActive(false);
-		m_pSelectedObject = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam));
+		//m_pSelectedObject = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam));
 		break;
 	}
 	return(false);

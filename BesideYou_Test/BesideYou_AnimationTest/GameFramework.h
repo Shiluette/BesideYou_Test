@@ -85,6 +85,9 @@ private:
 
 	//1
 	vector<ModelContainer*> m_vtCharacterDatas;
+
+	//2.21
+	vector<ModelContainer*> m_vtTestDatas;
 };
 
 

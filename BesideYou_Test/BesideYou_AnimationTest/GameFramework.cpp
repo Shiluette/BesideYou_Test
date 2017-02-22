@@ -2,6 +2,17 @@
 #include "GameFramework.h"
 #include "SkinnedMesh.h"
 
+//2.21
+CTexture* CreateTexture(ID3D11Device* pd3dDevice, WCHAR* ptrstring, ID3D11ShaderResourceView** pd3dsrvTexture, ID3D11SamplerState** pd3dSamplerState, int nTextureStartSlot, int nSamplerStartSlot)
+{
+	CTexture* pTexture = new CTexture(1, 1, nTextureStartSlot, nSamplerStartSlot);
+	D3DX11CreateShaderResourceViewFromFile(pd3dDevice, ptrstring, NULL, NULL, pd3dsrvTexture, NULL);
+	pTexture->SetTexture(0, *pd3dsrvTexture);
+	pTexture->SetSampler(0, *pd3dSamplerState);
+	(*pd3dsrvTexture)->Release();
+	return pTexture;
+}
+
 CGameFramework::CGameFramework()
 {
 	m_pd3dDevice = nullptr;
@@ -431,13 +442,38 @@ void CGameFramework::FrameAdvance()
 //1
 void CGameFramework::CharacterDataLoad()
 {
-	CSkinnedMesh* pMeshTest= new CSkinnedMesh(m_pd3dDevice, "../Data/Bottom.data", Bone_count);
+	//CSkinnedMesh* pMeshTest= new CSkinnedMesh(m_pd3dDevice, "../Data/Bottom.data", Bone_count);
 
-	m_vtCharacterDatas.push_back(new ModelContainer{ "Test", pMeshTest, NULL});
+	//2.21
+	ID3D11SamplerState *pd3dSamplerState = NULL;
+	D3D11_SAMPLER_DESC d3dSamplerDesc;
+	ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+	d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	d3dSamplerDesc.MinLOD = 0;
+	d3dSamplerDesc.MaxLOD = 0;
+	m_pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
+	ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+	CTexture *TestTexture = CreateTexture(m_pd3dDevice, _T("../Data/Vehice_Ambulance.png"), &pd3dsrvTexture, &pd3dSamplerState, 0, 0);
+	pd3dSamplerState->Release();
+	
+	//m_vtTestDatas.push_back(new ModelContainer{ "TestTexture", new CAssetMesh(m_pd3dDevice, "Character/Weapon/AK47.data", CAssetMesh::CharacterWeapon), TestTexture });
+	//for (auto& iter : m_vtTestDatas)//초기화, AddRef를 올려줌
+	//	iter->AddRef();
+
+	//CSkinnedMesh* pMeshTest = new CSkinnedMesh(m_pd3dDevice, "../Data/Bottom.data", Bone_count);
+
+	//2.21
+	CAssetMesh* pMeshTest = new CAssetMesh(m_pd3dDevice, "../Data/ambo_mesh.data");
+
+	m_vtCharacterDatas.push_back(new ModelContainer{ "TestModel", pMeshTest, TestTexture });
 
 	for (auto& iter : m_vtCharacterDatas)
 		iter->AddRef();
 
 	//★
-	delete pMeshTest;
+	//delete pMeshTest;
 }

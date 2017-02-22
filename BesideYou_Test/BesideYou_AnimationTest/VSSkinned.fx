@@ -79,7 +79,7 @@ VS_SKINNED_OUTPUT VSSkinned(VS_SKINNED_INPUT input)
 	for (int i = 0; i < 4; i++)
 	{
 		posL += weights[i] * mul(float4(input.position, 1.0f), gBoneTransform[input.boneindices[i]]).xyz;
-		//posL += weights[i] * mul(float4(input.position, 1.0f), gBoneTransform[input.boneindices[i]]);
+		posL += weights[i] * mul(float4(input.position, 1.0f), gBoneTransform[input.boneindices[i]]);
 		normalL += weights[i] * mul(input.normal, (float3x3)gBoneTransform[input.boneindices[i]]);
 	}
 	//¹ÚÁ¾Çõ

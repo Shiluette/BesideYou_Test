@@ -1,11 +1,3 @@
-﻿  BesideYou_AnimationTest.cpp
-  코드를 생성하고 있습니다...
-  건너뛰고 있습니다... (관련된 변경 내용 없음)
-  Player.cpp
-  Mesh.cpp
-  Camera.cpp
-  Shader.cpp
-  Scene.cpp
-  Object.cpp
-  GameFramework.cpp
+﻿  GameFramework.cpp
+c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\gameframework.cpp(215): warning C4244: '인수': 'WPARAM'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   BesideYou_AnimationTest.vcxproj -> C:\Users\dydrn\OneDrive\문서\Visual Studio 2015\Projects\BesideYou\BesideYou_Test\BesideYou_Test\x64\Debug\BesideYou_AnimationTest.exe

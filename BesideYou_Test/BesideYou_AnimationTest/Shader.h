@@ -217,6 +217,9 @@ public:
 	virtual ~CTexturedIlluminatedShader();
 
 	virtual void CreateShader(ID3D11Device *pd3dDevice);
+
+	//2.21
+	virtual void BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData);
 };
 
 //133

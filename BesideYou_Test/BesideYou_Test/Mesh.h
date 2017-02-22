@@ -32,7 +32,6 @@ public:
 	UINT *m_pnIndices;
 
 	//CMesh 클래스 객체의 참조(Reference)와 관련된 멤버 변수와 함수를 선언한다.
-
 	
 protected:
 	D3D11_PRIMITIVE_TOPOLOGY m_d3dPrimitiveTopology;

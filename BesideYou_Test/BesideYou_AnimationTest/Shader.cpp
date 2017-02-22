@@ -146,18 +146,13 @@ void CShader::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 	{
 		if (m_ppObjects[j])
 		{
-			//카메라의 절두체에 포함되는 객체들만을 렌더링한다. 
-			if (m_ppObjects[j]->IsVisible(pCamera))
-			{
+			////카메라의 절두체에 포함되는 객체들만을 렌더링한다. 
+			//if (m_ppObjects[j]->IsVisible(pCamera))
+			//{
 				m_ppObjects[j]->Render(pd3dDeviceContext,pCamera);
-			}
+			//}
 		}
 	}
-/*격자 메쉬의 크기가 (257x257)일 때와 (17x17)일 때의 프레임 레이트를 비교하라.
-포토샵과 같은 프로그램을 사용하여 이미지의 크기가 
-(1025x1025)인 높이 맵을 생성하여 격자 메쉬의 크기가
-(1025x1025), (25x25), (50x50), (100x100), (200x200),
-.... 일 때의 프레임 레이트를 비교하라. */
 }
 
 CSceneShader::CSceneShader()
@@ -790,6 +785,27 @@ void CTexturedIlluminatedShader::CreateShader(ID3D11Device *pd3dDevice)
 	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSTexturedLightingColor", "ps_5_0", &m_pd3dPixelShader);
 }
 
+//2.21
+void CTexturedIlluminatedShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData)
+{
+	m_nObjects = 1;
+	m_ppObjects = new CGameObject*[m_nObjects];
+
+	CMaterial *pTestMaterial = new CMaterial();
+	pTestMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+	CGameObject * pTestModel = new CGameObject(1);
+	pTestModel->SetMesh((*vtCharacterData.begin())->m_pModelMesh);
+	pTestModel->SetTexture((*vtCharacterData.begin())->m_pModelTexture);
+	pTestModel->SetPosition(1000, 800, 1000);
+	pTestModel->SetMaterial(pTestMaterial);
+
+	m_ppObjects[0] = pTestModel;
+}
+
 //133
 CDetailTexturedIlluminatedShader::CDetailTexturedIlluminatedShader()
 {
@@ -861,8 +877,10 @@ void CCharacterShader::CreateShader(ID3D11Device *pd3dDevice)
 		{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 4, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	UINT nElements = ARRAYSIZE(d3dInputElements);
-	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSSkinned", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
-	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSSkinned", "ps_5_0", &m_pd3dPixelShader);
+	CreateVertexShaderFromCompiledFile(pd3dDevice, L"VSSkinned.fxo", d3dInputElements, nElements);
+	CreatePixelShaderFromCompiledFile(pd3dDevice, L"PSSkinned.fxo");
+	//컴파일된 쉐이더 코드의 이름이 VS.fxo와 PS.fxo이다.
+
 }
 
 //k
@@ -880,7 +898,7 @@ void CCharacterShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContai
 	CGameObject * pTestModel = new CGameObject(1);
 	pTestModel->SetMesh((*vtCharacterData.begin())->m_pModelMesh);
 	pTestModel->SetTexture((*vtCharacterData.begin())->m_pModelTexture);
-	pTestModel->SetPosition(300, 800, 300);
+	pTestModel->SetPosition(1000, 1000, 1000);
 	pTestModel->SetMaterial(pTestMaterial);
 
 	m_ppObjects[0] = pTestModel;

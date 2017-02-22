@@ -47,6 +47,7 @@ public:
 	CTexture(int nTextures = 1, int nSamplers = 1, int nTextureStartSlot = 0, int nSamplerStartSlot = 0);
 	virtual ~CTexture();
 
+
 private:
 	int m_nReferences;
 
@@ -290,7 +291,8 @@ struct ModelContainer
 
 	void AddRef()
 	{
-		m_pModelMesh->AddRef();
+		if(m_pModelMesh)
+			m_pModelMesh->AddRef();
 		if (m_pModelTexture)
 			m_pModelTexture->AddRef();
 	}

@@ -55,6 +55,9 @@ public:
 	void Release() { if (--m_nReferences <= 0) delete this; }
 	//Mesh.cpp 파일에서 CMesh::AddRef(), CMesh::Release() 함수의 정의를 삭제한다. 
 
+	//2.21
+	void CalculateBoundingCube();
+
 protected:
 	AABB m_bcBoundingCube;
 
@@ -339,4 +342,17 @@ public:
 	virtual float OnGetHeight(int x, int z, void *pContext);
 	//격자의 교점(정점)의 색상을 설정한다.
 	virtual D3DXCOLOR OnGetColor(int x, int z, void *pContext);
+};
+
+//2.21
+class CAssetMesh : public CMeshTexturedIlluminated
+{
+	unsigned int m_uitype;//캐릭터에 종속되는 메쉬타입일 경우, 손목에 무기를 장착시키기 위해 일정한 offset이 필요하다.
+public:
+	enum {
+		Common = 0,
+		CharacterWeapon = 1
+	};
+	CAssetMesh(ID3D11Device *pd3dDevice, const std::string& filename, unsigned int type = CAssetMesh::Common);
+	virtual ~CAssetMesh();
 };
