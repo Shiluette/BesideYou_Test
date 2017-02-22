@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "GameFramework.h"
+//#include "GameFramework.h"
 
 CGameFramework::CGameFramework()
 {
@@ -328,13 +328,13 @@ void CGameFramework::BuildObjects()
 	//CShader 클래스의 정적(static) 멤버 변수로 선언된 상수 버퍼를 생성한다.
 	CShader::CreateShaderVariables(m_pd3dDevice);
 
+	m_pScene = new CScene();
+	m_pScene->BuildObjects(m_pd3dDevice);
+
 	m_pPlayerShader = new CPlayerShader();
 	m_pPlayerShader->CreateShader(m_pd3dDevice);
 	m_pPlayerShader->BuildObjects(m_pd3dDevice);
 	m_pPlayer = m_pPlayerShader->GetPlayer();
-
-	m_pScene = new CScene();
-	m_pScene->BuildObjects(m_pd3dDevice);
 
 }
 
@@ -653,7 +653,7 @@ void CGameFramework::FrameAdvance()
 
 	ProcessInput();
 
-	//AnimateObjects();
+	AnimateObjects();
 
 	float fClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	//렌더 타겟 뷰를 색상(RGB: 0.0f, 0.125f, 0.3f)으로 지운다. 

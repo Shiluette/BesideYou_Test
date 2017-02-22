@@ -1,10 +1,9 @@
 #pragma once
-//0720
-#include "Shader.h"
+
+//#include "Shader.h"
 
 class CScene
 {
-	//0720
 private:
 	//씬은 쉐이더들의 리스트(배열)이다.
 	CShader **m_ppShaders;

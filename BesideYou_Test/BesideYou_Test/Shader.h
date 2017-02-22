@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Object.h"
-#include "Camera.h"
-#include "Player.h"
+//#include "Object.h"
+//#include "Camera.h"
+//#include "Player.h"
 
 struct VS_CB_WORLD_MATRIX
 {
@@ -95,4 +95,5 @@ public:
 	virtual ~CTerrainShader();
 
 	virtual void BuildObjects(ID3D11Device * pd3dDevice);
+
 };

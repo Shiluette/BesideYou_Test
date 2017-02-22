@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Player.h"
+//#include "Player.h"
 
 //072
 CPlayer::CPlayer(int nMeshes) : CGameObject(nMeshes)

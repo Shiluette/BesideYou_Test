@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
-#include "Mesh.h"
-#include "Object.h"
+//#include "Mesh.h"
+//#include "Object.h"
 
 CMesh::CMesh(ID3D11Device *pd3dDevice)
 {
@@ -10,6 +10,7 @@ CMesh::CMesh(ID3D11Device *pd3dDevice)
 	m_ppd3dVertexBuffers = NULL;
 
 	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 	m_nSlot = 0;
 	m_nStartVertex = 0;
 
@@ -261,12 +262,14 @@ void CMesh::AssembleToVertexBuffer(int nBuffers, ID3D11Buffer **ppd3dBuffers, UI
 CAirplaneMesh::CAirplaneMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth, D3DXCOLOR d3dxColor) : CMesh(pd3dDevice)
 {
 	m_nVertices = 24 * 3;
-	
+
 	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	float fx = fWidth * 0.5f, fy = fHeight * 0.5f, fz = fDepth * 0.5f;
 	float x1 = fx * 0.2f, y1 = fy * 0.2f, x2 = fx * 0.1f, y3 = fy * 0.3f, y2 = ((y1 - (fy - y3)) / x1)*x2 + (fy - y3);
 	int i = 0;
+
+	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
 
 	CDiffusedVertex pVertices[24 * 3];
 

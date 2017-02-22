@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include "Object.h"
-#include "Shader.h"
+//#include "Object.h"
+//#include "Shader.h"
 
 //0720
 CGameObject::CGameObject(int nMeshes)

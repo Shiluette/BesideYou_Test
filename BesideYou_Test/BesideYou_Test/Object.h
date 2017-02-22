@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Camera.h"
-#include "Mesh.h"
+//#include "Camera.h"
+//#include "Mesh.h"
 
 class CGameObject
 {
@@ -48,6 +48,7 @@ public:
 
 	//객체를 렌더링하기 전에 호출되는 함수이다.
 	virtual void OnPrepareRender() { }
+
 };
 
 class CRotatingObject : public CGameObject
@@ -109,4 +110,5 @@ public:
 	float GetHeight(float x, float z, bool bReverseQuad = false) { return(m_pHeightMap->GetHeight(x, z, bReverseQuad) * m_d3dxvScale.y); }
 
 	D3DXVECTOR3 GetScale() { return(m_d3dxvScale); }
+
 };

@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include "Player.h"
-#include "Camera.h"
+//#include "Player.h"
+//#include "Camera.h"
 
 //072
 CCamera::CCamera(CCamera *pCamera)

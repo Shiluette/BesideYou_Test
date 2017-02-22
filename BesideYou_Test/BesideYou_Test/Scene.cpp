@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Scene.h"
+//#include "Scene.h"
 
 //0720
 CScene::CScene()

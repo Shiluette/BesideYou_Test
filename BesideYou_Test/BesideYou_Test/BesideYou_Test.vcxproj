@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="BesideYou_Test.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ClientHeader.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Shader.h"
+//#include "Shader.h"
 
 //0720
 //월드 변환 행렬을 위한 상수 버퍼는 쉐이더 객체의 정적(static) 데이터 멤버이다.
@@ -123,7 +123,6 @@ void CShader::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 	{
 		if (m_ppObjects[j])
 		{
-
 			m_ppObjects[j]->Render(pd3dDeviceContext);
 		}
 	}
@@ -251,29 +250,42 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 	ID3D11DeviceContext *pd3dDeviceContext = NULL;
 	pd3dDevice->GetImmediateContext(&pd3dDeviceContext);
 
-	CMesh *pAirplaneMesh = new CAirplaneMesh(pd3dDevice, 20.0f, 20.0f, 4.0f, D3DCOLOR_XRGB(0, 255, 0));
-	CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer();
-	pAirplanePlayer->SetMesh(pAirplaneMesh);
-	pAirplanePlayer->CreateShaderVariables(pd3dDevice);
-	pAirplanePlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
+	{
+		CMesh *pAirplaneMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 0.0f, 0.0f, 0.0f));
+		CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer();
+		pAirplanePlayer->SetMesh(pAirplaneMesh);
+		pAirplanePlayer->CreateShaderVariables(pd3dDevice);
+		pAirplanePlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
 
-	CCamera *pCamera = pAirplanePlayer->GetCamera();
-	pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
-	pCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
-	pCamera->GenerateViewMatrix();
+		CCamera *pCamera = pAirplanePlayer->GetCamera();
+		pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+		pCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
+		pCamera->GenerateViewMatrix();
 
-	pAirplanePlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
-	m_ppObjects[0] = pAirplanePlayer;
+		pAirplanePlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
+		m_ppObjects[0] = pAirplanePlayer;
+	}
 
-	//2.19
-	CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 4.0f, 12.0f, 4.0f, D3DXCOLOR(0.5f, 0.0f, 0.0f, 0.0f));
-	CTerrainPlayer *pTerrainPlayer = new CTerrainPlayer(1);
-	pTerrainPlayer->SetMesh(pCubeMesh);
-	pTerrainPlayer->CreateShaderVariables(pd3dDevice);
-	pTerrainPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
-	pTerrainPlayer->SetPosition(D3DXVECTOR3(0.0f, 200.0f, 0.0f));
-	m_ppObjects[1] = pTerrainPlayer;
-	//
+
+	{
+		////2.19
+		CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 1.0f, 0.0f, 0.0f));
+		CTerrainPlayer *pTerrainPlayer = new CTerrainPlayer(1);
+		pTerrainPlayer->SetMesh(pCubeMesh);
+		pTerrainPlayer->CreateShaderVariables(pd3dDevice);
+		pTerrainPlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
+
+		//2.22
+		CCamera *pTestCamera = pTerrainPlayer->GetCamera();
+		pTestCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+		pTestCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
+		pTestCamera->GenerateViewMatrix();
+		//2.22
+
+		pTerrainPlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
+		m_ppObjects[1] = pTerrainPlayer;
+		////2.19
+	}
 
 	if (pd3dDeviceContext) pd3dDeviceContext->Release();
 }

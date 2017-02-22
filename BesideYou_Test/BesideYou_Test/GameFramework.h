@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Timer.h"
-#include "Player.h"
-#include "Scene.h"
+//#include "Timer.h"
+//#include "Player.h"
+//#include "Scene.h"
 
 class CGameFramework
 {
@@ -66,6 +66,7 @@ private:
 
 	//¸ÖÆ¼»ùÇÃ¸µ
 	UINT                     m_n4xMSAAQualities;
+
 public:
 	CGameFramework();
 	~CGameFramework();

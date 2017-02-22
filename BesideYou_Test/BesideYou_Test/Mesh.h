@@ -109,6 +109,13 @@ public:
 	virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
 };
 
+class CAirplaneMesh : public CMesh
+{
+public:
+	CAirplaneMesh(ID3D11Device *pd3dDevice, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 4.0f, D3DXCOLOR d3dxColor = D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.0f));
+	virtual ~CAirplaneMesh();
+};
+
 //06
 class CCubeMesh : public CMesh
 {
@@ -121,13 +128,7 @@ public:
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
 };
 
-//072
-class CAirplaneMesh : public CMesh
-{
-public:
-	CAirplaneMesh(ID3D11Device *pd3dDevice, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 4.0f, D3DXCOLOR d3dxColor = D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.0f));
-	virtual ~CAirplaneMesh();
-};
+
 
 class CHeightMapGridMesh : public CMesh
 {
