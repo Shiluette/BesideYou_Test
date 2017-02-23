@@ -1,11 +1,9 @@
 #include "stdafx.h"
 //#include "Shader.h"
 
-//0720
 //월드 변환 행렬을 위한 상수 버퍼는 쉐이더 객체의 정적(static) 데이터 멤버이다.
 ID3D11Buffer *CShader::m_pd3dcbWorldMatrix = NULL;
 
-//0720
 CShader::CShader()
 {
 	m_ppObjects = NULL;
@@ -16,7 +14,6 @@ CShader::CShader()
 	m_pd3dPixelShader = NULL;
 }
 
-//0720
 CShader::~CShader()
 {
 	if (m_pd3dVertexShader) m_pd3dVertexShader->Release();
@@ -24,12 +21,10 @@ CShader::~CShader()
 	if (m_pd3dPixelShader) m_pd3dPixelShader->Release();
 }
 
-//0720
 void CShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
 }
 
-//0720
 void CShader::ReleaseObjects()
 {
 	if (m_ppObjects)
@@ -39,7 +34,6 @@ void CShader::ReleaseObjects()
 	}
 }
 
-//0720
 void CShader::AnimateObjects(float fTimeElapsed)
 {
 	for (int j = 0; j < m_nObjects; j++)
@@ -48,7 +42,6 @@ void CShader::AnimateObjects(float fTimeElapsed)
 	}
 }
 
-//0720
 void CShader::OnPrepareRender(ID3D11DeviceContext *pd3dDeviceContext)
 {
 	pd3dDeviceContext->IASetInputLayout(m_pd3dVertexLayout);
@@ -114,16 +107,18 @@ void CShader::CreateShader(ID3D11Device *pd3dDevice)
 	CreateShaderVariables(pd3dDevice);
 }
 
-//0720
 void CShader::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
 	OnPrepareRender(pd3dDeviceContext);
-	//쉐이더 객체의 모드 게임 객체들을 렌더링한다.
+
 	for (int j = 0; j < m_nObjects; j++)
 	{
 		if (m_ppObjects[j])
 		{
-			m_ppObjects[j]->Render(pd3dDeviceContext);
+			if (m_ppObjects[j]->IsVisible(pCamera))
+			{
+				m_ppObjects[j]->Render(pd3dDeviceContext, pCamera);
+			}
 		}
 	}
 }
@@ -159,52 +154,21 @@ void CShader::UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, D3DXM
 	pd3dDeviceContext->VSSetConstantBuffers(VS_SLOT_WORLD_MATRIX, 1, &m_pd3dcbWorldMatrix);
 }
 
-//0720
 CSceneShader::CSceneShader()
 {
 }
 
-//0720
 CSceneShader::~CSceneShader()
 {
 }
 
-//0720
 void CSceneShader::CreateShader(ID3D11Device *pd3dDevice)
 {
 	CShader::CreateShader(pd3dDevice);
 }
 
-//0720
 void CSceneShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
-	//CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 12.0f, 12.0f, 12.0f, D3DCOLOR_XRGB(0, 0, 128));
-
-	//int xObjects = 5, yObjects = 5, zObjects = 5, i = 0;
-	//m_nObjects = (xObjects * 2 + 1)*(yObjects * 2 + 1)*(zObjects * 2 + 1);
-	//m_ppObjects = new CGameObject*[m_nObjects];
-
-	//float fxPitch = 12.0f * 2.5f;
-	//float fyPitch = 12.0f * 2.5f;
-	//float fzPitch = 12.0f * 2.5f;
-	//CRotatingObject *pRotatingObject = NULL;
-	//for (int x = -xObjects; x <= xObjects; x++)
-	//{
-	//	for (int y = -yObjects; y <= yObjects; y++)
-	//	{
-	//		for (int z = -zObjects; z <= zObjects; z++)
-	//		{
-	//			pRotatingObject = new CRotatingObject();
-	//			pRotatingObject->SetMesh(pCubeMesh);
-	//			//pObject->SetShader(pShader);
-	//			pRotatingObject->SetPosition(fxPitch*x, fyPitch*y, fzPitch*z);
-	//			pRotatingObject->SetRotationAxis(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
-	//			pRotatingObject->SetRotationSpeed(10.0f*(i % 10));
-	//			m_ppObjects[i++] = pRotatingObject;
-	//		}
-	//	}
-	//}
-
 	CCubeMesh *pCubeMesh[2];
 	pCubeMesh[0] = new CCubeMesh(pd3dDevice, 12.0f, 12.0f, 12.0f, D3DCOLOR_XRGB(0, 128, 0));
 	pCubeMesh[1] = new CCubeMesh(pd3dDevice, 12.0f, 12.0f, 12.0f, D3DCOLOR_XRGB(128, 0, 0));
@@ -225,23 +189,19 @@ void CSceneShader::BuildObjects(ID3D11Device *pd3dDevice)
 	}
 }
 
-//0720
 CPlayerShader::CPlayerShader()
 {
 }
 
-//0720
 CPlayerShader::~CPlayerShader()
 {
 }
 
-//0720
 void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
 {
 	CShader::CreateShader(pd3dDevice);
 }
 
-//0720
 void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
 	m_nObjects = 2;
@@ -252,17 +212,17 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 
 	{
 		CMesh *pAirplaneMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 0.0f, 0.0f, 0.0f));
-		CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer();
+		CTerrainPlayer *pAirplanePlayer = new CTerrainPlayer(1);
 		pAirplanePlayer->SetMesh(pAirplaneMesh);
 		pAirplanePlayer->CreateShaderVariables(pd3dDevice);
-		pAirplanePlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
+		pAirplanePlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
 
 		CCamera *pCamera = pAirplanePlayer->GetCamera();
 		pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
 		pCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
 		pCamera->GenerateViewMatrix();
 
-		pAirplanePlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
+		//pAirplanePlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
 		m_ppObjects[0] = pAirplanePlayer;
 	}
 
@@ -290,7 +250,6 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 	if (pd3dDeviceContext) pd3dDeviceContext->Release();
 }
 
-//0720
 void CPlayerShader::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
 	//3인칭 카메라일 때 플레이어를 렌더링한다.
@@ -320,5 +279,11 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
 
 	//터레인의 초기위치
-	m_ppObjects[0]->SetPosition(-1250, 0, -1250);
+	//m_ppObjects[0]->SetPosition(-1250, 0, -1250);
+}
+
+//2.23
+CHeightMapTerrain *CTerrainShader::GetTerrain()
+{
+	return ((CHeightMapTerrain*)m_ppObjects[0]);
 }

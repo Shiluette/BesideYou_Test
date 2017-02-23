@@ -9,7 +9,6 @@ struct VS_CB_WORLD_MATRIX
 	D3DXMATRIX m_d3dxmtxWorld;
 };
 
-//0720
 class CShader
 {
 public:
@@ -61,7 +60,6 @@ protected:
 	static ID3D11Buffer *m_pd3dcbWorldMatrix;
 };
 
-//0720
 //게임 객체들을 렌더링하기 위한 쉐이더 클래스이다.
 class CSceneShader : public CShader
 {
@@ -73,7 +71,6 @@ public:
 	virtual void BuildObjects(ID3D11Device *pd3dDevice);
 };
 
-//0720
 //플레이어를 렌더링하기 위한 쉐이더 클래스이다.
 class CPlayerShader : public CShader
 {
@@ -96,4 +93,6 @@ public:
 
 	virtual void BuildObjects(ID3D11Device * pd3dDevice);
 
+	//2.23
+	CHeightMapTerrain * GetTerrain();
 };

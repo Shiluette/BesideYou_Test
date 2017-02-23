@@ -1,7 +1,6 @@
 #include "stdafx.h"
 //#include "Player.h"
 
-//072
 CPlayer::CPlayer(int nMeshes) : CGameObject(nMeshes)
 {
 	m_pCamera = NULL;
@@ -40,7 +39,6 @@ void CPlayer::UpdateShaderVariables(ID3D11DeviceContext *pd3dDeviceContext)
 	if (m_pCamera) m_pCamera->UpdateShaderVariables(pd3dDeviceContext);
 }
 
-//072
 /*플레이어의 위치를 변경하는 함수이다. 플레이어의 위치는 기본적으로 사용자가 플레이어를 이동하기 위한 키보드를 누를 때 변경된다. 플레이어의 이동 방향(dwDirection)에 따라 플레이어를 fDistance 만큼 이동한다.*/
 void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 {
@@ -62,7 +60,6 @@ void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 	}
 }
 
-//072
 void CPlayer::Move(const D3DXVECTOR3& d3dxvShift, bool bUpdateVelocity)
 {
 	//bUpdateVelocity가 참이면 플레이어를 이동하지 않고 속도 벡터를 변경한다.
@@ -80,7 +77,6 @@ void CPlayer::Move(const D3DXVECTOR3& d3dxvShift, bool bUpdateVelocity)
 	}
 }
 
-//072
 //플레이어를 로컬 x-축, y-축, z-축을 중심으로 회전한다.
 void CPlayer::Rotate(float x, float y, float z)
 {
@@ -154,7 +150,6 @@ void CPlayer::Rotate(float x, float y, float z)
 	D3DXVec3Normalize(&m_d3dxvUp, &m_d3dxvUp);
 }
 
-//072
 void CPlayer::Update(float fTimeElapsed)
 {
 	/*플레이어의 속도 벡터를 중력 벡터와 더한다. 중력 벡터에 fTimeElapsed를 곱하는 것은 중력을 시간에 비례하도록 적용한다는 의미이다.*/
@@ -199,7 +194,6 @@ void CPlayer::Update(float fTimeElapsed)
 	m_d3dxvVelocity += d3dxvDeceleration * fDeceleration;
 }
 
-//072
 CCamera *CPlayer::OnChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 {
 	CCamera *pNewCamera = NULL;
@@ -252,22 +246,18 @@ CCamera *CPlayer::OnChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMode,
 	return(pNewCamera);
 }
 
-//072
 void CPlayer::OnPlayerUpdated(float fTimeElapsed)
 {
 }
 
-//072
 void CPlayer::OnCameraUpdated(float fTimeElapsed)
 {
 }
 
-//072
 void CPlayer::ChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMode, float fTimeElapsed)
 {
 }
 
-//072
 void CPlayer::OnPrepareRender()
 {
 	m_d3dxmtxWorld._11 = m_d3dxvRight.x;
@@ -284,23 +274,21 @@ void CPlayer::OnPrepareRender()
 	m_d3dxmtxWorld._43 = m_d3dxvPosition.z;
 }
 
-//0720
-void CPlayer::Render(ID3D11DeviceContext *pd3dDeviceContext)
+void CPlayer::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
-	CGameObject::Render(pd3dDeviceContext);
+	CGameObject::Render(pd3dDeviceContext, pCamera);
 }
 
-//072
+
 CAirplanePlayer::CAirplanePlayer(int nMeshes) : CPlayer(nMeshes)
 {
 }
 
-//072
+
 CAirplanePlayer::~CAirplanePlayer()
 {
 }
 
-//072
 void CAirplanePlayer::OnPrepareRender()
 {
 	CPlayer::OnPrepareRender();
@@ -312,7 +300,6 @@ void CAirplanePlayer::OnPrepareRender()
 }
 /*3인칭 카메라일 때 플레이어 메쉬를 로컬 x-축을 중심으로 +90도 회전하고 렌더링한다. 왜냐하면 비행기 모델 메쉬는 <그림 18>과 같이 y-축 방향이 비행기의 앞쪽이 되도록 모델링이 되었고 이 메쉬를 카메라의 z-축 방향으로 향하도록 그릴 것이기 때문이다.*/
 
-//072
 //카메라를 변경할 때 호출되는 함수이다. nNewCameraMode는 새로 설정할 카메라 모드이다. 
 void CAirplanePlayer::ChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMode, float fTimeElapsed)
 {
@@ -360,12 +347,10 @@ void CAirplanePlayer::ChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMod
 	Update(fTimeElapsed);
 }
 
-//2.19
 CTerrainPlayer::CTerrainPlayer(int nMeshes) : CPlayer(nMeshes)
 {
 }
 
-//2.19
 void CTerrainPlayer::ChangeCamera(ID3D11Device * pd3dDevice, DWORD nNewCameraMode, float fTimeElapsed)
 {
 	DWORD nCurrentCameraMode = (m_pCamera) ? m_pCamera->GetMode() : 0x00;
@@ -413,7 +398,6 @@ void CTerrainPlayer::ChangeCamera(ID3D11Device * pd3dDevice, DWORD nNewCameraMod
 	Update(fTimeElapsed);
 }
 
-//2.19
 void CTerrainPlayer::OnPlayerUpdated(float fTimeElapsed)
 {
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)m_pPlayerUpdatedContext;

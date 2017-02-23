@@ -17,7 +17,6 @@ public:
 	void CreateShaderVariables(ID3D11Device *pd3dDevice);
 	void UpdateShaderVariables(ID3D11DeviceContext *pd3dDeviceContext);
 
-//072
 protected:
 	//플레이어의 위치 벡터, x-축(Right), y-축(Up), z-축(Look) 벡터이다.
 	D3DXVECTOR3 m_d3dxvPosition;
@@ -49,7 +48,6 @@ protected:
 	//플레이어에 현재 설정된 카메라이다.
 	CCamera *m_pCamera;
 
-//072
 public:
 	D3DXVECTOR3 GetPosition() { return(m_d3dxvPosition); }
 	D3DXVECTOR3 GetLookVector() { return(m_d3dxvLook); }
@@ -95,7 +93,7 @@ public:
 	//플레이어의 위치와 회전축으로부터 월드 변환 행렬을 생성하는 함수이다.
 	virtual void OnPrepareRender();
 	//플레이어의 카메라가 3인칭 카메라일 때 플레이어 메쉬를 렌더링한다.
-	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
+	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera);
 };
 
 

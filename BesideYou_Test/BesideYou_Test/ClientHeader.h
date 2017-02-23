@@ -30,12 +30,11 @@
 #include <dxgi1_3.h>
 #include <DxErr.h>
 
-//
 #include "BesideYou_Test.h"
 #include "Timer.h"
 #include "Mesh.h"
-#include "Object.h"
 #include "Camera.h"
+#include "Object.h"
 #include "Player.h"
 #include "Shader.h"
 #include "Scene.h"

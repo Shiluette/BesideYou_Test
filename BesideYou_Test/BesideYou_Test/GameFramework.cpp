@@ -16,11 +16,9 @@ CGameFramework::CGameFramework()
 
 	m_pPlayer = NULL;
 
-	//07100
 	m_pd3dDepthStencilBuffer = NULL;
 	m_pd3dDepthStencilView = NULL;
 
-	//0720
 	m_pPlayerShader = NULL;
 }
 
@@ -202,13 +200,11 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 	{
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		//072
 		SetCapture(hWnd);
 		GetCursorPos(&m_ptOldCursorPos);
 		break;
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
-		//072
 		ReleaseCapture();
 		break;
 	case WM_MOUSEMOVE:
@@ -223,10 +219,8 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 	switch (nMessageID)
 	{
 	case WM_KEYUP:
-		//0510
 		switch (wParam)
 		{
-			//072
 			/*‘F1’ 키를 누르면 1인칭 카메라, ‘F2’ 키를 누르면 스페이스-쉽 카메라로 변경한다, ‘F3’ 키를 누르면 3인칭 카메라로 변경한다.*/
 		case VK_F1:
 		case VK_F2:
@@ -260,13 +254,11 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 
 		if (m_pd3dRenderTargetView) m_pd3dRenderTargetView->Release();
 
-		//07100
 		if (m_pd3dDepthStencilBuffer) m_pd3dDepthStencilBuffer->Release();
 		if (m_pd3dDepthStencilView) m_pd3dDepthStencilView->Release();
 
 		m_pDXGISwapChain->ResizeBuffers(2, m_nWndClientWidth, m_nWndClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
-		//07100
 		CreateRenderTargetDepthStencilView();
 		
 		CCamera *pCamera = m_pPlayer->GetCamera();
@@ -298,7 +290,7 @@ void CGameFramework::OnDestroy()
 	//Direct3D와 관련된 객체를 소멸한다. 
 	if (m_pd3dDeviceContext) m_pd3dDeviceContext->ClearState();
 	if (m_pd3dRenderTargetView) m_pd3dRenderTargetView->Release();
-	//07100
+
 	if (m_pd3dDepthStencilBuffer) m_pd3dDepthStencilBuffer->Release();
 	if (m_pd3dDepthStencilView) m_pd3dDepthStencilView->Release();
 
@@ -322,7 +314,6 @@ void CGameFramework::OnDestroy()
 	if (m_pd2dsbrRedColor) m_pd2dsbrRedColor->Release();
 }
 
-//0720
 void CGameFramework::BuildObjects()
 {
 	//CShader 클래스의 정적(static) 멤버 변수로 선언된 상수 버퍼를 생성한다.
@@ -336,6 +327,30 @@ void CGameFramework::BuildObjects()
 	m_pPlayerShader->BuildObjects(m_pd3dDevice);
 	m_pPlayer = m_pPlayerShader->GetPlayer();
 
+	CHeightMapTerrain * pTerrain = m_pScene->GetTerrain();
+	m_pPlayer->SetPosition(D3DXVECTOR3(pTerrain->GetWidth() * 0.5f, 1200.0f, pTerrain->GetLength() * 0.5f));
+	//플레이어의 위치가 변경될 때 지형의 정보에 따라 플레이어의 위치를 변경할 수 있도록 설정한다.
+	m_pPlayer->SetPlayerUpdatedContext(pTerrain);
+	//카메라의 위치가 변경될 때 지형의 정보에 따라 카메라의 위치를 변경할 수 있도록 설정한다.
+	m_pPlayer->SetCameraUpdatedContext(pTerrain);
+
+	m_pCamera = m_pPlayer->GetCamera();
+	m_pCamera->SetViewport(m_pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+	m_pCamera->GenerateViewMatrix();
+
+	m_pScene->SetCamera(m_pCamera);
+}
+
+void CGameFramework::ReleaseObjects()
+{
+	//CShader 클래스의 정적(static) 멤버 변수로 선언된 상수 버퍼를 반환한다.
+	CShader::ReleaseShaderVariables();
+
+	if (m_pScene) m_pScene->ReleaseObjects();
+	if (m_pScene) delete m_pScene;
+
+	if (m_pPlayerShader) m_pPlayerShader->ReleaseObjects();
+	if (m_pPlayerShader) delete m_pPlayerShader;
 }
 
 //다이렉트2d
@@ -411,100 +426,6 @@ void CGameFramework::Render2D()
 	wsprintf(w_str2, L"RedCube : (%d %d %d)", (int)m_pScene->ReturnCubePosition(1).x, (int)m_pScene->ReturnCubePosition(1).y, (int)m_pScene->ReturnCubePosition(1).z);
 	m_pd2dContext->DrawTextW(w_str2, 50, m_dwExplainFormat, D2D1::RectF(0.0f, 0.0f, 600.0f, 300.0f), m_pd2dsbrRedColor);
 
-	//if (SceneNumber == Loading)
-	//{
-	//	m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LOGO], D2D1::RectF(0.f, 0.f, m_nWndClientWidth / 3, m_nWndClientHeight / 3), 0.9f);
-	//}
-	//else if (SceneNumber == Lobby)//로비일때의 버튼 그리기 동작 선택 2016.08.14 박종혁
-	//{
-	//	bool bSelected{ true };
-	//	bool bArrived{ true };
-
-	//	bool bClass{ false };
-	//	bool bStart{ false };
-	//	bool bExit{ false };
-	//	bool bLeftArrow{ false };
-	//	bool bRightArrow{ false };
-
-	//	m_pCurrentScene->GetBoolState_SelectedNArrive(bSelected, bArrived);//둘다 false일때만 그린다.
-	//	m_pCurrentScene->GetBoolState_IsButtonActivation(bLeftArrow, bRightArrow, bStart, bExit, bClass);
-
-	//	wchar_t w_str[50];
-	//	wmemset(w_str, 0, 50);
-	//	wsprintf(w_str, L"소총수");
-	//	wsprintf(w_str, L"유탄수");
-	//	wsprintf(w_str, L"저격수");
-	//	wsprintf(w_str, L"의무병");
-
-	//	//m_pd2dContext->DrawTextW(w_str, 50, m_dwExplainFormat, D2D1::RectF(0.0f, 0.0f, 600.0f, 300.0f), m_pd2dsbrBlackColor);
-
-	//	if ((!bSelected) && (!bArrived))//Lobby모드
-	//	{
-	//		m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LOGO], D2D1::RectF(0.f, 0.f, m_nWndClientWidth / 3, m_nWndClientHeight / 3), 0.9f);
-	//		//로고를 그린다.
-
-	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 300);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bStart)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-
-	//		//뒤로 가기
-	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 200);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bExit)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		//선택버튼 및 나가기 버튼 드로우
-	//	}
-	//	else if (bSelected && bArrived)//Select모드
-	//	{
-	//		mtx = D2D1::Matrix3x2F::Translation(30, 30);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		m_pd2dContext->FillGeometry(m_pd2drcBox, m_pd2dsbrBeige);
-
-	//		mtx = D2D1::Matrix3x2F::Translation((m_nWndClientWidth / 2) - 64 - (m_nWndClientWidth / 6.3f), (m_nWndClientHeight / 2) - 64);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bLeftArrow)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowLeftOn], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowLeftOff], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
-
-	//		mtx = D2D1::Matrix3x2F::Translation((m_nWndClientWidth / 2) - 64 + (m_nWndClientWidth / 8.5f), (m_nWndClientHeight / 2) - 64);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bRightArrow)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowRightOn], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::SelectArrowRightOff], D2D1::RectF(0.f, 0.f, 128.f, 128.f), 1.f);
-
-	//		//다른 클래스 보기
-	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 400);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bClass)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-
-	//		//시작 혹은 생성
-	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 300);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bStart)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-
-	//		//뒤로 가기
-	//		mtx = D2D1::Matrix3x2F::Translation(m_nWndClientWidth - 300, m_nWndClientHeight - 200);
-	//		m_pd2dContext->SetTransform(mtx);
-	//		if (bExit)
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOn], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		else
-	//			m_pd2dContext->DrawBitmap(m_ppd2dBitmap[BITMAP::LobbyStartOff], D2D1::RectF(0.f, 0.f, 288, 60), 0.7f);
-	//		//선택버튼 및 나가기 버튼 드로우
-	//	}
-	//}
 	m_pd2dContext->EndDraw();
 }
 
@@ -574,20 +495,6 @@ bool CGameFramework::LoadImageFromFile(_TCHAR *pszstrFileName, ID2D1Bitmap1 **pp
 	return(true);
 }
 
-//0720
-void CGameFramework::ReleaseObjects()
-{
-	//CShader 클래스의 정적(static) 멤버 변수로 선언된 상수 버퍼를 반환한다.
-	CShader::ReleaseShaderVariables();
-
-	if (m_pScene) m_pScene->ReleaseObjects();
-	if (m_pScene) delete m_pScene;
-
-	if (m_pPlayerShader) m_pPlayerShader->ReleaseObjects();
-	if (m_pPlayerShader) delete m_pPlayerShader;
-}
-
-//072
 void CGameFramework::ProcessInput()
 {
 	bool bProcessedByScene = false;
@@ -664,19 +571,18 @@ void CGameFramework::FrameAdvance()
 
 	if (m_pPlayer) m_pPlayer->UpdateShaderVariables(m_pd3dDeviceContext);
 
-	CCamera *pCamera = (m_pPlayer) ? m_pPlayer->GetCamera() : NULL;
-	if (m_pScene) m_pScene->Render(m_pd3dDeviceContext, pCamera);
+	//CCamera *pCamera = (m_pPlayer) ? m_pPlayer->GetCamera() : NULL;
+
+	if (m_pScene) m_pScene->Render(m_pd3dDeviceContext, m_pCamera);
 
 	//다이렉트2d
 	Render2D();
 
-	//0720
 	/*렌더 타겟은 그대로 두고 깊이 버퍼를 1.0으로 지운다. 이제 플레이어를 렌더링하면 플레이어는 무조건 그려질 것이다.*/
 	m_pd3dDeviceContext->ClearDepthStencilView(m_pd3dDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	//0720
 	//3인칭 카메라일 때 플레이어를 렌더링한다.
-	if (m_pPlayerShader) m_pPlayerShader->Render(m_pd3dDeviceContext, pCamera);
+	if (m_pPlayerShader) m_pPlayerShader->Render(m_pd3dDeviceContext, m_pCamera);
 
 	//후면버퍼를 전면버퍼로 프리젠트한다. 
 	m_pDXGISwapChain->Present(0, 0);

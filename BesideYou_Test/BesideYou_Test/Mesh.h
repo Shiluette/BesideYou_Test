@@ -1,5 +1,24 @@
 #pragma once
 
+//2.23
+class AABB
+{
+public:
+	//바운딩 박스의 최소점과 최대점을 나타내는 벡터이다.
+	D3DXVECTOR3 m_d3dxvMinimum;
+	D3DXVECTOR3 m_d3dxvMaximum;
+
+	AABB() { m_d3dxvMinimum = D3DXVECTOR3(+FLT_MAX, +FLT_MAX, +FLT_MAX); m_d3dxvMaximum = D3DXVECTOR3(-FLT_MAX, -FLT_MAX, -FLT_MAX); }
+	AABB(D3DXVECTOR3 d3dxvMinimum, D3DXVECTOR3 d3dxvMaximum) { m_d3dxvMinimum = d3dxvMinimum; m_d3dxvMaximum = d3dxvMaximum; }
+
+	//두 개의 바운딩 박스를 합한다.
+	void Merge(D3DXVECTOR3& d3dxvMinimum, D3DXVECTOR3& d3dxvMaximum);
+	void Merge(AABB *pAABB);
+	//바운딩 박스의 8개의 꼭지점을 행렬로 변환하고 최소점과 최대점을 다시 계산한다.
+	void Update(D3DXMATRIX *pd3dxmtxTransform);
+
+};
+
 class CVertex
 {
 	D3DXVECTOR3 m_d3dxvPosition;
@@ -9,7 +28,6 @@ public:
 	~CVertex() { }
 };
 
-//052
 class CDiffusedVertex
 {
 	D3DXVECTOR3 m_d3dxvPosition;
@@ -68,6 +86,7 @@ protected:
 	DXGI_FORMAT	m_dxgiIndexFormat;
 
 	ID3D11RasterizerState *m_pd3dRasterizerState;
+
 public:
 	CMesh(ID3D11Device *pd3dDevice);
 	virtual ~CMesh();
@@ -84,29 +103,14 @@ public:
 	//메쉬의 정점 버퍼들을 배열로 조립한다. 
 	void AssembleToVertexBuffer(int nBuffers = 0, ID3D11Buffer **m_pd3dBuffers = NULL, UINT *pnBufferStrides = NULL, UINT *pnBufferOffsets = NULL);
 
-	////--------------------------------------------------------------------------------
-	////07 (내 생각에는 아래내용은 private로 바뀌어야할것같다)
-	///*인덱스 버퍼(인덱스의 배열)에 대한 인터페이스 포인터이다. 인덱스 버퍼는 정점 버퍼(배열)에 대한 인덱스를 가진다.*/
-	//ID3D11Buffer *m_pd3dIndexBuffer;
-	////인덱스 버퍼가 포함하는 인덱스의 개수이다. 
-	//UINT m_nIndices;
-	////인덱스 버퍼에서 메쉬를 표현하기 위해 사용되는 시작 인덱스이다. 
-	//UINT m_nStartIndex;
-	////각 인덱스에 더해질 인덱스이다. 
-	//int m_nBaseVertex;
-	////--------------------------------------------------------------------------------
-};
-
-class CTriangleMesh : public CMesh
-{
+//절두체컬링
+//2.23-1
+protected:
+	AABB m_bcBoundingCube;
+//절두체컬링
+//2.23-1
 public:
-	CTriangleMesh(ID3D11Device *pd3dDevice);
-	virtual ~CTriangleMesh();
-
-	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
-
-	//05-1
-	virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
+	AABB GetBoundingCube() { return(m_bcBoundingCube); }
 };
 
 class CAirplaneMesh : public CMesh
@@ -116,19 +120,15 @@ public:
 	virtual ~CAirplaneMesh();
 };
 
-//06
 class CCubeMesh : public CMesh
 {
 public:
-	//072
 	CCubeMesh(ID3D11Device *pd3dDevice, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f, D3DXCOLOR d3dxColor = D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.0f));
 	virtual ~CCubeMesh();
 
 	virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
 };
-
-
 
 class CHeightMapGridMesh : public CMesh
 {

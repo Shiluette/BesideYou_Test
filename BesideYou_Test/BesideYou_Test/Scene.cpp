@@ -1,7 +1,6 @@
 #include "stdafx.h"
 //#include "Scene.h"
 
-//0720
 CScene::CScene()
 {
 	m_ppShaders = NULL;
@@ -12,14 +11,8 @@ CScene::~CScene()
 {
 }
 
-//0720
 void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 {
-	/*m_nShaders = 1;
-	m_pShaders = new CSceneShader[m_nShaders];
-	m_pShaders[0].CreateShader(pd3dDevice);
-	m_pShaders[0].BuildObjects(pd3dDevice);*/
-
 	m_nShaders = 2;
 	m_ppShaders = new CShader*[m_nShaders];
 
@@ -30,11 +23,8 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 	m_ppShaders[1] = new CTerrainShader();
 	m_ppShaders[1]->CreateShader(pd3dDevice);
 	m_ppShaders[1]->BuildObjects(pd3dDevice);
-
-
 }
 
-//0720
 void CScene::ReleaseObjects()
 {
 	for (int j = 0; j < m_nShaders; j++) m_ppShaders[j]->ReleaseObjects();
@@ -74,7 +64,6 @@ bool CScene::ProcessInput()
 	return(false);
 }
 
-//0720
 void CScene::AnimateObjects(float fTimeElapsed)
 {
 	for (int i = 0; i < m_nShaders; i++)
@@ -83,11 +72,17 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	}
 }
 
-//0720
 void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
 {
 	for (int i = 0; i < m_nShaders; i++)
 	{
 		m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
 	}
+}
+
+//2.23
+CHeightMapTerrain *CScene::GetTerrain()
+{
+	CTerrainShader *pTerrainShader = (CTerrainShader*)m_ppShaders[1];
+	return (pTerrainShader->GetTerrain());
 }

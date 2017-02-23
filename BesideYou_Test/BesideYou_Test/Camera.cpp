@@ -2,7 +2,6 @@
 //#include "Player.h"
 //#include "Camera.h"
 
-//072
 CCamera::CCamera(CCamera *pCamera)
 {
 	if (pCamera)
@@ -61,14 +60,12 @@ void CCamera::SetViewport(ID3D11DeviceContext *pd3dDeviceContext, DWORD xTopLeft
 	pd3dDeviceContext->RSSetViewports(1, &m_d3dViewport);
 }
 
-//072
 /*카메라 변환 행렬을 생성하는 함수이다. 카메라의 위치 벡터, 카메라가 바라보는 지점, 카메라의 Up 벡터(로컬 y-축 벡터)를 파라메터로 사용하는 D3DXMatrixLookAtLH() 함수를 사용한다.*/
 void CCamera::GenerateViewMatrix()
 {
 	D3DXMatrixLookAtLH(&m_d3dxmtxView, &m_d3dxvPosition, &m_pPlayer->GetPosition(), &m_d3dxvUp);
 }
 
-//072
 void CCamera::RegenerateViewMatrix()
 {
 	//카메라의 z-축 벡터를 정규화한다.
@@ -94,6 +91,9 @@ void CCamera::RegenerateViewMatrix()
 	m_d3dxmtxView._41 = -D3DXVec3Dot(&m_d3dxvPosition, &m_d3dxvRight);
 	m_d3dxmtxView._42 = -D3DXVec3Dot(&m_d3dxvPosition, &m_d3dxvUp);
 	m_d3dxmtxView._43 = -D3DXVec3Dot(&m_d3dxvPosition, &m_d3dxvLook);
+
+	//2.23-1
+	CalculateFrustumPlanes();
 }
 
 void CCamera::GenerateProjectionMatrix(float fNearPlaneDistance, float fFarPlaneDistance, float fAspectRatio, float fFOVAngle)
@@ -126,13 +126,136 @@ void CCamera::UpdateShaderVariables(ID3D11DeviceContext *pd3dDeviceContext)
 	pd3dDeviceContext->VSSetConstantBuffers(VS_SLOT_CAMERA, 1, &m_pd3dcbCamera);
 }
 
-//072
+//2.23-1
+void CCamera::CalculateFrustumPlanes()
+{
+	/*카메라 변환 행렬과 원근 투영 변환 행렬을 곱한 행렬을 사용하여 절두체 평면들을 구한다. 즉 월드 좌표계에서 절두체 컬링을 한다.*/
+	D3DXMATRIX mtxViewProject = m_d3dxmtxView * m_d3dxmtxProjection;
+
+	//절두체의 왼쪽 평면
+	m_d3dxFrustumPlanes[0].a = -(mtxViewProject._14 + mtxViewProject._11);
+	m_d3dxFrustumPlanes[0].b = -(mtxViewProject._24 + mtxViewProject._21);
+	m_d3dxFrustumPlanes[0].c = -(mtxViewProject._34 + mtxViewProject._31);
+	m_d3dxFrustumPlanes[0].d = -(mtxViewProject._44 + mtxViewProject._41);
+
+	//절두체의 오른쪽 평면
+	m_d3dxFrustumPlanes[1].a = -(mtxViewProject._14 - mtxViewProject._11);
+	m_d3dxFrustumPlanes[1].b = -(mtxViewProject._24 - mtxViewProject._21);
+	m_d3dxFrustumPlanes[1].c = -(mtxViewProject._34 - mtxViewProject._31);
+	m_d3dxFrustumPlanes[1].d = -(mtxViewProject._44 - mtxViewProject._41);
+
+	//절두체의 위쪽 평면
+	m_d3dxFrustumPlanes[2].a = -(mtxViewProject._14 - mtxViewProject._12);
+	m_d3dxFrustumPlanes[2].b = -(mtxViewProject._24 - mtxViewProject._22);
+	m_d3dxFrustumPlanes[2].c = -(mtxViewProject._34 - mtxViewProject._32);
+	m_d3dxFrustumPlanes[2].d = -(mtxViewProject._44 - mtxViewProject._42);
+
+	//절두체의 아래쪽 평면
+	m_d3dxFrustumPlanes[3].a = -(mtxViewProject._14 + mtxViewProject._12);
+	m_d3dxFrustumPlanes[3].b = -(mtxViewProject._24 + mtxViewProject._22);
+	m_d3dxFrustumPlanes[3].c = -(mtxViewProject._34 + mtxViewProject._32);
+	m_d3dxFrustumPlanes[3].d = -(mtxViewProject._44 + mtxViewProject._42);
+
+	//절두체의 근평면
+	m_d3dxFrustumPlanes[4].a = -(mtxViewProject._13);
+	m_d3dxFrustumPlanes[4].b = -(mtxViewProject._23);
+	m_d3dxFrustumPlanes[4].c = -(mtxViewProject._33);
+	m_d3dxFrustumPlanes[4].d = -(mtxViewProject._43);
+
+	//절두체의 원평면
+	m_d3dxFrustumPlanes[5].a = -(mtxViewProject._14 - mtxViewProject._13);
+	m_d3dxFrustumPlanes[5].b = -(mtxViewProject._24 - mtxViewProject._23);
+	m_d3dxFrustumPlanes[5].c = -(mtxViewProject._34 - mtxViewProject._33);
+	m_d3dxFrustumPlanes[5].d = -(mtxViewProject._44 - mtxViewProject._43);
+
+	/*절두체의 각 평면의 법선 벡터 (a, b. c)의 크기로 a, b, c, d를 나눈다. 즉, 법선 벡터를 정규화하고 원점에서 평면까지의 거리를 계산한다.*/
+	for (int i = 0; i < 6; i++) D3DXPlaneNormalize(&m_d3dxFrustumPlanes[i], &m_d3dxFrustumPlanes[i]);
+}
+
+//2.23-1
+bool CCamera::IsInFrustum(D3DXVECTOR3& d3dxvMinimum, D3DXVECTOR3& d3dxvMaximum)
+{
+	D3DXVECTOR3 d3dxvNearPoint, d3dxvFarPoint, d3dxvNormal;
+	for (int i = 0; i < 6; i++)
+	{
+		/*절두체의 각 평면에 대하여 바운딩 박스의 근접점을 계산한다. 근접점의 x, y, z 좌표는 법선 벡터의 각 요소가 음수이면 바운딩 박스의 최대점의 좌표가 되고 그렇지 않으면 바운딩 박스의 최소점의 좌표가 된다.*/
+		d3dxvNormal = D3DXVECTOR3(m_d3dxFrustumPlanes[i].a, m_d3dxFrustumPlanes[i].b, m_d3dxFrustumPlanes[i].c);
+		if (d3dxvNormal.x >= 0.0f)
+		{
+			if (d3dxvNormal.y >= 0.0f)
+			{
+				if (d3dxvNormal.z >= 0.0f)
+				{
+					//법선 벡터의 x, y, z 좌표의 부호가 모두 양수이므로 근접점은 바운딩 박스의 최소점이다.
+					d3dxvNearPoint.x = d3dxvMinimum.x; d3dxvNearPoint.y = d3dxvMinimum.y; d3dxvNearPoint.z = d3dxvMinimum.z;
+				}
+				else
+				{
+					/*법선 벡터의 x, y 좌표의 부호가 모두 양수이므로 근접점의 x, y 좌표는 바운딩 박스의 최소점의 x, y 좌표이고 법선 벡터의 z 좌표가 움수이므로 근접점의 z 좌표는 바운딩 박스의 최대점의 z 좌표이다.*/
+					d3dxvNearPoint.x = d3dxvMinimum.x; d3dxvNearPoint.y = d3dxvMinimum.y; d3dxvNearPoint.z = d3dxvMaximum.z;
+				}
+			}
+			else
+			{
+				if (d3dxvNormal.z >= 0.0f)
+				{
+					/*법선 벡터의 x, z 좌표의 부호가 모두 양수이므로 근접점의 x, z 좌표는 바운딩 박스의 최소점의 x, z 좌표이고 법선 벡터의 y 좌표가 움수이므로 근접점의 y 좌표는 바운딩 박스의 최대점의 y 좌표이다.*/
+					d3dxvNearPoint.x = d3dxvMinimum.x; d3dxvNearPoint.y = d3dxvMaximum.y; d3dxvNearPoint.z = d3dxvMinimum.z;
+				}
+				else
+				{
+					/*법선 벡터의 y, z 좌표의 부호가 모두 음수이므로 근접점의 y, z 좌표는 바운딩 박스의 최대점의 y, z 좌표이고 법선 벡터의 x 좌표가 양수이므로 근접점의 x 좌표는 바운딩 박스의 최소점의 x 좌표이다.*/
+					d3dxvNearPoint.x = d3dxvMinimum.x; d3dxvNearPoint.y = d3dxvMaximum.y; d3dxvNearPoint.z = d3dxvMaximum.z;
+				}
+			}
+		}
+		else
+		{
+			if (d3dxvNormal.y >= 0.0f)
+			{
+				if (d3dxvNormal.z >= 0.0f)
+				{
+					/*법선 벡터의 y, z 좌표의 부호가 모두 양수이므로 근접점의 y, z 좌표는 바운딩 박스의 최소점의 y, z 좌표이고 법선 벡터의 x 좌표가 음수이므로 근접점의 x 좌표는 바운딩 박스의 최대점의 x 좌표이다.*/
+					d3dxvNearPoint.x = d3dxvMaximum.x; d3dxvNearPoint.y = d3dxvMinimum.y; d3dxvNearPoint.z = d3dxvMinimum.z;
+				}
+				else
+				{
+					/*법선 벡터의 x, z 좌표의 부호가 모두 음수이므로 근접점의 x, z 좌표는 바운딩 박스의 최대점의 x, z 좌표이고 법선 벡터의 y 좌표가 양수이므로 근접점의 y 좌표는 바운딩 박스의 최소점의 y 좌표이다.*/
+					d3dxvNearPoint.x = d3dxvMaximum.x; d3dxvNearPoint.y = d3dxvMinimum.y; d3dxvNearPoint.z = d3dxvMaximum.z;
+				}
+			}
+			else
+			{
+				if (d3dxvNormal.z >= 0.0f)
+				{
+					/*법선 벡터의 x, y 좌표의 부호가 모두 음수이므로 근접점의 x, y 좌표는 바운딩 박스의 최대점의 x, y 좌표이고 법선 벡터의 z 좌표가 양수이므로 근접점의 z 좌표는 바운딩 박스의 최소점의 z 좌표이다.*/
+					d3dxvNearPoint.x = d3dxvMaximum.x; d3dxvNearPoint.y = d3dxvMaximum.y; d3dxvNearPoint.z = d3dxvMinimum.z;
+				}
+				else
+				{
+					//법선 벡터의 x, y, z 좌표의 부호가 모두 음수이므로 근접점은 바운딩 박스의 최대점이다.
+					d3dxvNearPoint.x = d3dxvMaximum.x; d3dxvNearPoint.y = d3dxvMaximum.y; d3dxvNearPoint.z = d3dxvMaximum.z;
+				}
+			}
+		}
+		/*근접점이 절두체 평면 중 하나의 평면의 바깥(앞)쪽에 있으면 근접점은 절두체에 포함되지 않는다. 근접점이 어떤 평면의 바깥(앞)쪽에 있으면 근접점을 평면의 방정식에 대입하면 부호가 양수가 된다. 각 평면의 방정식에 근접점을 대입하는 것은 근접점 (x, y, z)과 평면의 법선벡터 (a, b, c)의 내적에 원점에서 평면까지의 거리를 더한 것과 같다.*/
+
+		if ((D3DXVec3Dot(&d3dxvNormal, &d3dxvNearPoint) + m_d3dxFrustumPlanes[i].d) > 0.0f) return(false);
+	}
+	return(true);
+}
+
+//2.23-1
+bool CCamera::IsInFrustum(AABB *pAABB)
+{
+	return(IsInFrustum(pAABB->m_d3dxvMinimum, pAABB->m_d3dxvMaximum));
+}
+
 CSpaceShipCamera::CSpaceShipCamera(CCamera *pCamera) : CCamera(pCamera)
 {
 	m_nMode = SPACESHIP_CAMERA;
 }
 
-//072
 void CSpaceShipCamera::Rotate(float x, float y, float z)
 {
 	D3DXMATRIX mtxRotate;
@@ -173,7 +296,6 @@ void CSpaceShipCamera::Rotate(float x, float y, float z)
 	}
 }
 
-//072
 CFirstPersonCamera::CFirstPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 {
 	m_nMode = FIRST_PERSON_CAMERA;
@@ -191,7 +313,6 @@ CFirstPersonCamera::CFirstPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 	}
 }
 
-//072
 void CFirstPersonCamera::Rotate(float x, float y, float z)
 {
 	D3DXMATRIX mtxRotate;
@@ -230,7 +351,6 @@ void CFirstPersonCamera::Rotate(float x, float y, float z)
 	}
 }
 
-//072
 CThirdPersonCamera::CThirdPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 {
 	m_nMode = THIRD_PERSON_CAMERA;
@@ -248,7 +368,6 @@ CThirdPersonCamera::CThirdPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 	}
 }
 
-//072
 void CThirdPersonCamera::Update(D3DXVECTOR3& d3dxvLookAt, float fTimeElapsed)
 {
 	//플레이어의 회전에 따라 3인칭 카메라도 회전해야 한다.
@@ -285,7 +404,6 @@ void CThirdPersonCamera::Update(D3DXVECTOR3& d3dxvLookAt, float fTimeElapsed)
 }
 }
 
-//072
 void CThirdPersonCamera::SetLookAt(D3DXVECTOR3& d3dxvLookAt)
 {
 	D3DXMATRIX mtxLookAt;

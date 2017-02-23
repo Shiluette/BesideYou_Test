@@ -39,13 +39,14 @@ private:
 	//렌더 타겟 뷰 인터페이스에 대한 포인터이다. 
 	ID3D11RenderTargetView *m_pd3dRenderTargetView;
 
-	//07100
 	ID3D11Texture2D *m_pd3dDepthStencilBuffer;
 	ID3D11DepthStencilView *m_pd3dDepthStencilView;
 
-	//0510
 	ID3D11Buffer *m_pd3dcbColor;
 	//---------------------------------------------------------------------
+
+	//2.23
+	CCamera * m_pCamera;
 
 	//다이렉트2d
 	ID2D1Factory1 *m_pd2dFactory{ nullptr };
@@ -66,7 +67,6 @@ private:
 
 	//멀티샘플링
 	UINT                     m_n4xMSAAQualities;
-
 public:
 	CGameFramework();
 	~CGameFramework();
@@ -74,7 +74,6 @@ public:
 	bool OnCreate(HINSTANCE hInstance, HWND hMainWnd);
 	void OnDestroy();
 
-	//07100
 	bool CreateRenderTargetDepthStencilView();
 
 	bool CreateDirect3DDisplay();
@@ -102,6 +101,5 @@ public:
 	//마지막으로 마우스 버튼을 클릭할 때의 마우스 커서의 위치이다.
 	POINT	m_ptOldCursorPos;
 
-	//0720
 	CPlayerShader *m_pPlayerShader;
 };

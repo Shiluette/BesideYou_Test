@@ -2,7 +2,6 @@
 //#include "Object.h"
 //#include "Shader.h"
 
-//0720
 CGameObject::CGameObject(int nMeshes)
 {
 	D3DXMatrixIdentity(&m_d3dxmtxWorld);
@@ -11,12 +10,10 @@ CGameObject::CGameObject(int nMeshes)
 	m_ppMeshes = NULL;
 	if (m_nMeshes > 0) m_ppMeshes = new CMesh*[m_nMeshes];
 	for (int i = 0; i < m_nMeshes; i++) m_ppMeshes[i] = NULL;
-	//m_pShader = NULL; 삭제한다.
 
 	m_nReferences = 0;
 }
 
-//0720
 CGameObject::~CGameObject()
 {
 	if (m_ppMeshes)
@@ -29,7 +26,6 @@ CGameObject::~CGameObject()
 		}
 		delete[] m_ppMeshes;
 	}	
-	
 }
 
 void CGameObject::AddRef()
@@ -58,7 +54,6 @@ void CGameObject::Animate(float fTimeElapsed)
 {
 }
 
-//07100
 void CGameObject::SetPosition(float x, float y, float z)
 {
 	m_d3dxmtxWorld._41 = x;
@@ -66,7 +61,6 @@ void CGameObject::SetPosition(float x, float y, float z)
 	m_d3dxmtxWorld._43 = z;
 }
 
-//07100
 void CGameObject::SetPosition(D3DXVECTOR3 d3dxvPosition)
 {
 	m_d3dxmtxWorld._41 = d3dxvPosition.x;
@@ -74,21 +68,13 @@ void CGameObject::SetPosition(D3DXVECTOR3 d3dxvPosition)
 	m_d3dxmtxWorld._43 = d3dxvPosition.z;
 }
 
-//07100
 D3DXVECTOR3 CGameObject::GetPosition()
 {
 	return(D3DXVECTOR3(m_d3dxmtxWorld._41, m_d3dxmtxWorld._42, m_d3dxmtxWorld._43));
 }
 
-//0720
-void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext)
+void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
-	/*	if (m_pShader)
-	{
-	m_pShader->UpdateShaderVariable(pd3dDeviceContext, &m_d3dxmtxWorld);
-	m_pShader->Render(pd3dDeviceContext);
-	} 삭제한다. */
-	OnPrepareRender();
 	CShader::UpdateShaderVariable(pd3dDeviceContext, &m_d3dxmtxWorld);
 
 	if (m_ppMeshes)
@@ -96,12 +82,20 @@ void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext)
 		for (int i = 0; i < m_nMeshes; i++)
 		{
 			if (m_ppMeshes[i])
-				m_ppMeshes[i]->Render(pd3dDeviceContext);
+			{
+				bool bIsVisible = true;
+				if (pCamera)
+				{
+					AABB bcBoundingCube = m_ppMeshes[i]->GetBoundingCube();
+					bcBoundingCube.Update(&m_d3dxmtxWorld);
+					bIsVisible = pCamera->IsInFrustum(&bcBoundingCube);
+				}
+				if (bIsVisible) m_ppMeshes[i]->Render(pd3dDeviceContext);
+			}
 		}
 	}
 }
 
-//072
 D3DXVECTOR3 CGameObject::GetLookAt()
 {
 	//게임 객체를 로컬 z-축 벡터를 반환한다.
@@ -110,7 +104,6 @@ D3DXVECTOR3 CGameObject::GetLookAt()
 	return(d3dxvLookAt);
 }
 
-//072
 D3DXVECTOR3 CGameObject::GetUp()
 {
 	//게임 객체를 로컬 y-축 벡터를 반환한다.
@@ -119,7 +112,6 @@ D3DXVECTOR3 CGameObject::GetUp()
 	return(d3dxvUp);
 }
 
-//072
 D3DXVECTOR3 CGameObject::GetRight()
 {
 	//게임 객체를 로컬 x-축 벡터를 반환한다.
@@ -128,7 +120,6 @@ D3DXVECTOR3 CGameObject::GetRight()
 	return(d3dxvRight);
 }
 
-//072
 void CGameObject::MoveStrafe(float fDistance)
 {
 	//게임 객체를 로컬 x-축 방향으로 이동한다.
@@ -138,7 +129,6 @@ void CGameObject::MoveStrafe(float fDistance)
 	CGameObject::SetPosition(d3dxvPosition);
 }
 
-//072
 void CGameObject::MoveUp(float fDistance)
 {
 	//게임 객체를 로컬 y-축 방향으로 이동한다.
@@ -148,7 +138,6 @@ void CGameObject::MoveUp(float fDistance)
 	CGameObject::SetPosition(d3dxvPosition);
 }
 
-//072
 void CGameObject::MoveForward(float fDistance)
 {
 	//게임 객체를 로컬 z-축 방향으로 이동한다.
@@ -158,7 +147,6 @@ void CGameObject::MoveForward(float fDistance)
 	CGameObject::SetPosition(d3dxvPosition);
 }
 
-//072
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 {
 	//게임 객체를 주어진 각도로 회전한다.
@@ -167,7 +155,6 @@ void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 	m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
 }
 
-//072
 void CGameObject::Rotate(D3DXVECTOR3 *pd3dxvAxis, float fAngle)
 {
 	//게임 객체를 주어진 회전축을 중심으로 회전한다.
@@ -176,7 +163,21 @@ void CGameObject::Rotate(D3DXVECTOR3 *pd3dxvAxis, float fAngle)
 	m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
 }
 
-//072
+//2.23-1
+bool CGameObject::IsVisible(CCamera *pCamera)
+{
+	OnPrepareRender();
+
+	bool bIsVisible = false;
+	if (m_bActive)
+	{
+		AABB bcBoundingCube = m_bcMeshBoundingCube;
+		bcBoundingCube.Update(&m_d3dxmtxWorld);
+		if (pCamera) bIsVisible = pCamera->IsInFrustum(&bcBoundingCube);
+	}
+	return(bIsVisible);
+}
+
 CRotatingObject::CRotatingObject(int nMeshes) : CGameObject(nMeshes)
 {
 	m_fRotationSpeed = 15.0f;
@@ -186,16 +187,14 @@ CRotatingObject::~CRotatingObject()
 {
 }
 
-//072
 void CRotatingObject::Animate(float fTimeElapsed)
 {
 	CGameObject::Rotate(&m_d3dxvRotationAxis, m_fRotationSpeed * fTimeElapsed);
 }
 
-
-void CRotatingObject::Render(ID3D11DeviceContext *pd3dDeviceContext)
+void CRotatingObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
-	CGameObject::Render(pd3dDeviceContext);
+	CGameObject::Render(pd3dDeviceContext, pCamera);
 }
 
 CHeightMap::CHeightMap(LPCTSTR pFileName, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale)
@@ -349,9 +348,6 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 			SetMesh(pHeightMapGridMesh, x + (z*cxBlocks));
 		}
 	}
-
-
-	
 }
 
 CHeightMapTerrain::~CHeightMapTerrain()

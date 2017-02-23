@@ -6,7 +6,6 @@ struct VS_CB_CAMERA
 	D3DXMATRIX m_d3dxmtxProjection;
 };
 
-//”CPlayer“는 플레이어를 나타내는 클래스이다.
 class CPlayer;
 
 class CCamera
@@ -25,7 +24,10 @@ protected:
 	//카메라에 연결된 플레이어 객체에 대한 포인터를 선언한다.
 	CPlayer *m_pPlayer;
 
-//072
+	//2.23-1
+	//절두체의 6개 평면(월드 좌표계)을 나타낸다.
+	D3DXPLANE m_d3dxFrustumPlanes[6];
+
 protected:
 	//카메라의 위치(월드좌표계) 벡터이다.
 	D3DXVECTOR3 m_d3dxvPosition;
@@ -47,7 +49,6 @@ protected:
 	//플레이어가 회전할 때 얼마만큼의 시간을 지연시킨 후 카메라를 회전시킬 것인가를 나타낸다.
 	float m_fTimeLag;
 
-//072
 public:
 	//CCamera 클래스의 기본 생성자를 다음과 같이 변경한다.
 	CCamera(CCamera *pCamera);
@@ -96,7 +97,6 @@ public:
 	//뷰-포트를 설정하는 멤버 함수를 선언한다.
 	void SetViewport(ID3D11DeviceContext *pd3dDeviceContext, DWORD xStart, DWORD yStart, DWORD nWidth, DWORD nHeight, float fMinZ = 0.0f, float fMaxZ = 1.0f);
 
-	//072
 	//카메라 변환행렬을 생성한다.
 	void GenerateViewMatrix();
 	/*카메라가 여러번 회전을 하게 되면 누적된 실수연산의 부적확성 때문에 카메라의 로컬 x-축(Right), y-축(Up), z-축(LookAt)이 서로 직교하지 않을 수 있다. 카메라의 로컬 x-축(Right), y-축(Up), z-축(LookAt)이 서로 직교하도록 만들어준다.*/
@@ -107,6 +107,15 @@ public:
 	//상수 버퍼를 생성하고 내용을 갱신하는 멤버 함수를 선언한다.
 	void CreateShaderVariables(ID3D11Device *pd3dDevice);
 	void UpdateShaderVariables(ID3D11DeviceContext *pd3dDeviceContext);
+
+//2.23-1
+//절두체컬링
+public:
+	//절두체의 6개 평면을 계산한다.
+	void CalculateFrustumPlanes();
+	//바운딩 박스가 절두체에 완전히 포함되거나 일부라도 포함되는 가를 검사한다.
+	bool IsInFrustum(D3DXVECTOR3& d3dxvMinimum, D3DXVECTOR3& d3dxvMaximum);
+	bool IsInFrustum(AABB *pAABB);
 };
 
 class CSpaceShipCamera : public CCamera

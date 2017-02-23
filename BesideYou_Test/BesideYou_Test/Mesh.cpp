@@ -2,6 +2,52 @@
 //#include "Mesh.h"
 //#include "Object.h"
 
+//2.23-1
+void AABB::Merge(D3DXVECTOR3& d3dxvMinimum, D3DXVECTOR3& d3dxvMaximum)
+{
+	if (d3dxvMinimum.x < m_d3dxvMinimum.x) m_d3dxvMinimum.x = d3dxvMinimum.x;
+	if (d3dxvMinimum.y < m_d3dxvMinimum.y) m_d3dxvMinimum.y = d3dxvMinimum.y;
+	if (d3dxvMinimum.z < m_d3dxvMinimum.z) m_d3dxvMinimum.z = d3dxvMinimum.z;
+	if (d3dxvMaximum.x > m_d3dxvMaximum.x) m_d3dxvMaximum.x = d3dxvMaximum.x;
+	if (d3dxvMaximum.y > m_d3dxvMaximum.y) m_d3dxvMaximum.y = d3dxvMaximum.y;
+	if (d3dxvMaximum.z > m_d3dxvMaximum.z) m_d3dxvMaximum.z = d3dxvMaximum.z;
+}
+
+//2.23-1
+void AABB::Merge(AABB *pAABB)
+{
+	Merge(pAABB->m_d3dxvMinimum, pAABB->m_d3dxvMaximum);
+}
+
+//2.23-1
+void AABB::Update(D3DXMATRIX *pmtxTransform)
+{
+	/*바운딩 박스의 최소점과 최대점은 회전을 하면 더 이상 최소점과 최대점이 되지 않는다. 그러므로 바운딩 박스의 최소점과 최대점에서 8개의 정점을 구하고 변환(회전)을 한 다음 최소점과 최대점을 다시 계산한다.*/
+	D3DXVECTOR3 vVertices[8];
+	vVertices[0] = D3DXVECTOR3(m_d3dxvMinimum.x, m_d3dxvMinimum.y, m_d3dxvMinimum.z);
+	vVertices[1] = D3DXVECTOR3(m_d3dxvMinimum.x, m_d3dxvMinimum.y, m_d3dxvMaximum.z);
+	vVertices[2] = D3DXVECTOR3(m_d3dxvMaximum.x, m_d3dxvMinimum.y, m_d3dxvMaximum.z);
+	vVertices[3] = D3DXVECTOR3(m_d3dxvMaximum.x, m_d3dxvMinimum.y, m_d3dxvMinimum.z);
+	vVertices[4] = D3DXVECTOR3(m_d3dxvMinimum.x, m_d3dxvMaximum.y, m_d3dxvMinimum.z);
+	vVertices[5] = D3DXVECTOR3(m_d3dxvMinimum.x, m_d3dxvMaximum.y, m_d3dxvMaximum.z);
+	vVertices[6] = D3DXVECTOR3(m_d3dxvMaximum.x, m_d3dxvMaximum.y, m_d3dxvMaximum.z);
+	vVertices[7] = D3DXVECTOR3(m_d3dxvMaximum.x, m_d3dxvMaximum.y, m_d3dxvMinimum.z);
+	m_d3dxvMinimum = D3DXVECTOR3(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+	m_d3dxvMaximum = D3DXVECTOR3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	//8개의 정점에서 x, y, z 좌표의 최소값과 최대값을 구한다.
+	for (int i = 0; i < 8; i++)
+	{
+		//정점을 변환한다.
+		D3DXVec3TransformCoord(&vVertices[i], &vVertices[i], pmtxTransform);
+		if (vVertices[i].x < m_d3dxvMinimum.x) m_d3dxvMinimum.x = vVertices[i].x;
+		if (vVertices[i].y < m_d3dxvMinimum.y) m_d3dxvMinimum.y = vVertices[i].y;
+		if (vVertices[i].z < m_d3dxvMinimum.z) m_d3dxvMinimum.z = vVertices[i].z;
+		if (vVertices[i].x > m_d3dxvMaximum.x) m_d3dxvMaximum.x = vVertices[i].x;
+		if (vVertices[i].y > m_d3dxvMaximum.y) m_d3dxvMaximum.y = vVertices[i].y;
+		if (vVertices[i].z > m_d3dxvMaximum.z) m_d3dxvMaximum.z = vVertices[i].z;
+	}
+}
+
 CMesh::CMesh(ID3D11Device *pd3dDevice)
 {
 	m_nBuffers = 0;
@@ -26,10 +72,12 @@ CMesh::CMesh(ID3D11Device *pd3dDevice)
 
 	m_nReferences = 0;
 
-	//0753
 	m_pd3dxvPositions = NULL;
 	m_pnIndices = NULL;
 
+	//2.23-1
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 }
 
 CMesh::~CMesh()
@@ -37,12 +85,9 @@ CMesh::~CMesh()
 	if (m_pd3dPositionBuffer) m_pd3dPositionBuffer->Release();
 	if (m_pd3dColorBuffer) m_pd3dColorBuffer->Release();
 
-	//05-1
 	if (m_pd3dRasterizerState) m_pd3dRasterizerState->Release();
 
-	//07
 	if (m_pd3dIndexBuffer) m_pd3dIndexBuffer->Release();
-
 }
 
 void CMesh::AddRef()
@@ -72,60 +117,10 @@ void CMesh::Render(ID3D11DeviceContext *pd3dDeviceContext)
 		pd3dDeviceContext->Draw(m_nVertices, m_nStartVertex);
 }
 
-//05-1
 void CMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
 {
 }
 
-////052
-//CTriangleMesh::CTriangleMesh(ID3D11Device *pd3dDevice) : CMesh(pd3dDevice)
-//{
-//	m_nVertices = 3;
-//	m_nStride = sizeof(CDiffusedVertex);
-//	m_nOffset = 0;
-//	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-//
-//	/*정점(삼각형의 꼭지점)의 색상은 시계방향 순서대로 빨간색, 녹색, 파란색으로 지정한다. D3DXCOLOR 매크로는 RGBA(Red, Green, Blue, Alpha) 4개의 파라메터를 사용하여 색상을 표현하기 위하여 사용한다. 각 파라메터는 0.0~1.0 사이의 실수값을 가진다.*/
-//	CDiffusedVertex pVertices[3];
-//	pVertices[0] = CDiffusedVertex(D3DXVECTOR3(0.0f, 0.5f, 0.0f), D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f));
-//	pVertices[1] = CDiffusedVertex(D3DXVECTOR3(0.5f, -0.5f, 0.0f), D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f));
-//	pVertices[2] = CDiffusedVertex(D3DXVECTOR3(-0.5f, -0.5f, 0.0f), D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f));
-//
-//	D3D11_BUFFER_DESC d3dBufferDesc;
-//	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
-//	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-//	d3dBufferDesc.ByteWidth = m_nStride * m_nVertices;
-//	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-//	d3dBufferDesc.CPUAccessFlags = 0;
-//	D3D11_SUBRESOURCE_DATA d3dBufferData;
-//	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
-//	d3dBufferData.pSysMem = pVertices;
-//	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dVertexBuffer);
-//
-//	CreateRasterizerState(pd3dDevice);
-//}
-
-CTriangleMesh::~CTriangleMesh()
-{
-}
-
-void CTriangleMesh::Render(ID3D11DeviceContext *pd3dDeviceContext)
-{
-	CMesh::Render(pd3dDeviceContext);
-}
-
-//05-1
-void CTriangleMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
-{
-	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
-	ZeroMemory(&d3dRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
-	//래스터라이저 단계에서 컬링(은면 제거)을 하지 않도록 래스터라이저 상태를 생성한다.
-	d3dRasterizerDesc.CullMode = D3D11_CULL_NONE;
-	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
-}
-
-//071
 CCubeMesh::CCubeMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth, D3DXCOLOR d3dxColor) : CMesh(pd3dDevice)
 {
 	m_nVertices = 8;
@@ -198,14 +193,17 @@ CCubeMesh::CCubeMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, floa
 	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dIndexBuffer);
 
 	CreateRasterizerState(pd3dDevice);
+
+	//2.23-1
+	//정점 버퍼 데이터를 생성한 다음 최소점과 최대점을 저장한다. 
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(-fx, -fy, -fz);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(+fx, +fy, +fz);
 }
 
-//06
 CCubeMesh::~CCubeMesh()
 {
 }
 
-//06
 void CCubeMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
 {
 	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
@@ -221,7 +219,6 @@ void CCubeMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
 	pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
 }
 
-//06
 void CCubeMesh::Render(ID3D11DeviceContext *pd3dDeviceContext)
 {
 	CMesh::Render(pd3dDeviceContext);
@@ -389,7 +386,6 @@ CAirplaneMesh::CAirplaneMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeig
 	CreateRasterizerState(pd3dDevice);
 }
 
-//072
 CAirplaneMesh::~CAirplaneMesh()
 {
 }
@@ -429,11 +425,11 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 
 	/*for (int i = 0, z = zStart; z < (zStart + nLength); z++)
 	{
-		for (int x = xStart; x < (xStart + nWidth); x++, i++)
-		{
-			m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), 0, (z*m_d3dxvScale.z));
-			pd3dxColors[i] = d3dxColor;
-		}
+	for (int x = xStart; x < (xStart + nWidth); x++, i++)
+	{
+	m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), 0, (z*m_d3dxvScale.z));
+	pd3dxColors[i] = d3dxColor;
+	}
 	}*/
 
 	D3D11_BUFFER_DESC d3dBufferDesc;
@@ -500,6 +496,8 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	CreateRasterizerState(pd3dDevice);
 }
 
+
+
 CHeightMapGridMesh::~CHeightMapGridMesh()
 {
 }
@@ -509,7 +507,6 @@ void CHeightMapGridMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
 	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
 	ZeroMemory(&d3dRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
-	//071
 	/*D3D11_CULL_NONE은 은면 제거를 하지 않음을 나타낸다. 즉, 모든 프리미티브를 그린다. D3D11_FILL_WIREFRAME은 프리미티브를 선분으로만 그린다.*/
 	d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
 	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;

@@ -10,8 +10,13 @@ private:
 
 protected:
 	D3DXMATRIX m_d3dxmtxWorld;
+	
 	CMesh **m_ppMeshes;
 	int m_nMeshes;
+
+	//2.23-1
+	//객체가 가지는 메쉬 전체에 대한 바운딩 박스이다.
+	AABB m_bcMeshBoundingCube;
 
 public:
 	CGameObject(int nMeshes = 0);
@@ -22,15 +27,13 @@ public:
 
 	virtual void SetMesh(CMesh *pMesh, int nindex = 0);
 	virtual void Animate(float fTimeElapsed);
-	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
+	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera);
 
-	//07100
 	//객체의 위치를 설정한다.
 	virtual void SetPosition(float x, float y, float z);
 	virtual void SetPosition(D3DXVECTOR3 d3dxvPosition);
 	D3DXVECTOR3 GetPosition();
 
-//072
 public:
 	//로컬 x-축, y-축, z-축 방향으로 이동한다.
 	void MoveStrafe(float fDistance = 1.0f);
@@ -49,6 +52,13 @@ public:
 	//객체를 렌더링하기 전에 호출되는 함수이다.
 	virtual void OnPrepareRender() { }
 
+//2.23-1
+//절두체컬링
+//객체가 카메라의 절두체 내부에 있는 가를 판단한다. 
+public:
+	bool IsVisible(CCamera *pCamera = NULL);
+private:
+	bool m_bActive;
 };
 
 class CRotatingObject : public CGameObject
@@ -62,7 +72,7 @@ public:
 	virtual ~CRotatingObject();
 
 	virtual void Animate(float fTimeElapsed);
-	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
+	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera);
 
 	//자전 속도와 회전축 벡터를 설정하는 함수이다.
 	void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
@@ -109,6 +119,10 @@ public:
 	//지형의 실제 높이를 반환한다. 높이 맵의 높이에 스케일을 곱한 값이다.
 	float GetHeight(float x, float z, bool bReverseQuad = false) { return(m_pHeightMap->GetHeight(x, z, bReverseQuad) * m_d3dxvScale.y); }
 
-	D3DXVECTOR3 GetScale() { return(m_d3dxvScale); }
+	D3DXVECTOR3 GetScale() { return(m_d3dxvScale); };
 
+	//2.23
+	float GetWidth() { return(m_nWidth * m_d3dxvScale.x);}
+	float GetLength() { return(m_nLength * m_d3dxvScale.z);}
+	//float GetPeakHeight() {	return(m_bcMeshBoundingCube.m_d3dxvMaximum.y);}
 };
