@@ -30,15 +30,23 @@
 #include <dxgi1_3.h>
 #include <DxErr.h>
 
+//--
 #include "BesideYou_Test.h"
 #include "Timer.h"
+
 #include "Mesh.h"
+#include "MeshIlluminated.h"
+
 #include "Camera.h"
 #include "Object.h"
 #include "Player.h"
+
 #include "Shader.h"
+#include "IlluminatedShader.h"
+
 #include "Scene.h"
 #include "GameFramework.h"
+//--
 
 //---------------------------------------------------------------------------------------------
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
@@ -50,19 +58,25 @@
 #define VS_SLOT_WORLD_MATRIX			0x01
 
 #define PS_SLOT_COLOR					0x00
+//조명과 재질을 설정하기 위한 상수 버퍼의 슬롯 번호를 정의한다. 
+#define PS_SLOT_LIGHT			0x00
+#define PS_SLOT_MATERIAL		0x01
 
 /*정점의 색상을 무작위로(Random) 설정하기 위해 사용한다. 각 정점의 색상은 난수(Random Number)를 생성하여 지정한다.*/
 #define RANDOM_COLOR D3DXCOLOR((rand() * 0xFFFFFF) / RAND_MAX)
 
+//camera
 #define FIRST_PERSON_CAMERA	0x01
 #define SPACESHIP_CAMERA	0x02
 #define THIRD_PERSON_CAMERA	0x03
 #define ASPECT_RATIO	(float(FRAME_BUFFER_WIDTH) / float(FRAME_BUFFER_HEIGHT))
 
+//move
 #define DIR_FORWARD	0x01
 #define DIR_BACKWARD	0x02
 #define DIR_LEFT	0x04
 #define DIR_RIGHT	0x08
 #define DIR_UP		0x10
 #define DIR_DOWN	0x20
+
 //---------------------------------------------------------------------------------------------

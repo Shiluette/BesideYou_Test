@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IlluminatedShader.h"
 //#include "Object.h"
 //#include "Camera.h"
 //#include "Player.h"
@@ -71,9 +72,32 @@ public:
 	virtual void BuildObjects(ID3D11Device *pd3dDevice);
 };
 
-//플레이어를 렌더링하기 위한 쉐이더 클래스이다.
-class CPlayerShader : public CShader
+//2.25
+class CIlluminatedShader : public CShader
 {
+public:
+	CIlluminatedShader();
+	virtual ~CIlluminatedShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+
+	//재질을 설정하기 위한 상수 버퍼이다.
+	static ID3D11Buffer	 *m_pd3dcbMaterial;
+
+	static void CreateShaderVariables(ID3D11Device *pd3dDevice);
+	static void ReleaseShaderVariables();
+	//재질을 쉐이더 변수에 설정(연결)하기 위한 함수이다.
+	static void UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, MATERIAL *pMaterial);
+};
+
+//2.25
+//플레이어를 렌더링하기 위한 쉐이더 클래스이다.
+class CPlayerShader : public CIlluminatedShader
+{
+	//2.25
+private:
+	CMaterial *m_pMaterial;
+
 public:
 	CPlayerShader();
 	virtual ~CPlayerShader();
@@ -85,7 +109,8 @@ public:
 	CPlayer *GetPlayer(int nIndex = 0) { return((CPlayer *)m_ppObjects[nIndex]); }
 };
 
-class CTerrainShader : public CShader
+//2.25-1 CShader를 CIlluminatedShader로 바꿈
+class CTerrainShader : public CIlluminatedShader
 {
 public:
 	CTerrainShader();

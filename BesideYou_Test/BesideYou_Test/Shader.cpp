@@ -4,6 +4,8 @@
 //월드 변환 행렬을 위한 상수 버퍼는 쉐이더 객체의 정적(static) 데이터 멤버이다.
 ID3D11Buffer *CShader::m_pd3dcbWorldMatrix = NULL;
 
+
+
 CShader::CShader()
 {
 	m_ppObjects = NULL;
@@ -191,10 +193,12 @@ void CSceneShader::BuildObjects(ID3D11Device *pd3dDevice)
 
 CPlayerShader::CPlayerShader()
 {
+	m_pMaterial = NULL;
 }
 
 CPlayerShader::~CPlayerShader()
 {
+	if (m_pMaterial) m_pMaterial->Release();
 }
 
 void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
@@ -204,48 +208,56 @@ void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
 
 void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
-	m_nObjects = 2;
+	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
 	ID3D11DeviceContext *pd3dDeviceContext = NULL;
 	pd3dDevice->GetImmediateContext(&pd3dDeviceContext);
 
 	{
-		CMesh *pAirplaneMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 0.0f, 0.0f, 0.0f));
-		CTerrainPlayer *pAirplanePlayer = new CTerrainPlayer(1);
-		pAirplanePlayer->SetMesh(pAirplaneMesh);
-		pAirplanePlayer->CreateShaderVariables(pd3dDevice);
-		pAirplanePlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
+		//2.25
+		CMaterial *pRedMaterial = new CMaterial();
+		pRedMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+		pRedMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+		pRedMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+		pRedMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
 
-		CCamera *pCamera = pAirplanePlayer->GetCamera();
+		CCubeMeshIlluminated *pMesh = new CCubeMeshIlluminated(pd3dDevice, 10.0f, 10.0f, 10.0f);
+		CTerrainPlayer *pPlayer = new CTerrainPlayer(1);
+		pPlayer->SetMesh(pMesh);
+		pPlayer->CreateShaderVariables(pd3dDevice);
+		pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
+		pPlayer->SetMaterial(pRedMaterial);
+
+		CCamera *pCamera = pPlayer->GetCamera();
 		pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
 		pCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
 		pCamera->GenerateViewMatrix();
 
 		//pAirplanePlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
-		m_ppObjects[0] = pAirplanePlayer;
+		m_ppObjects[0] = pPlayer;
 	}
 
 
-	{
-		////2.19
-		CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 1.0f, 0.0f, 0.0f));
-		CTerrainPlayer *pTerrainPlayer = new CTerrainPlayer(1);
-		pTerrainPlayer->SetMesh(pCubeMesh);
-		pTerrainPlayer->CreateShaderVariables(pd3dDevice);
-		pTerrainPlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
+	//{
+	//	////2.19
+	//	CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 1.0f, 0.0f, 0.0f));
+	//	CTerrainPlayer *pTerrainPlayer = new CTerrainPlayer(1);
+	//	pTerrainPlayer->SetMesh(pCubeMesh);
+	//	pTerrainPlayer->CreateShaderVariables(pd3dDevice);
+	//	pTerrainPlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
 
-		//2.22
-		CCamera *pTestCamera = pTerrainPlayer->GetCamera();
-		pTestCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
-		pTestCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
-		pTestCamera->GenerateViewMatrix();
-		//2.22
+	//	//2.22
+	//	CCamera *pTestCamera = pTerrainPlayer->GetCamera();
+	//	pTestCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+	//	pTestCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
+	//	pTestCamera->GenerateViewMatrix();
+	//	//2.22
 
-		pTerrainPlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
-		m_ppObjects[1] = pTerrainPlayer;
-		////2.19
-	}
+	//	pTerrainPlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
+	//	m_ppObjects[1] = pTerrainPlayer;
+	//	////2.19
+	//}
 
 	if (pd3dDeviceContext) pd3dDeviceContext->Release();
 }
@@ -273,10 +285,22 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
+	//2.25-1
+	//지형을 위한 재질을 생성한다. 재질은 녹색을 많이 반사한다.
+	CMaterial *pTerrainMaterial = new CMaterial();
+	pTerrainMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.6f, 0.9f, 0.2f, 1.0f);
+	pTerrainMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 0.2f, 0.0f, 1.0f);
+	pTerrainMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+	pTerrainMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+
 	D3DXVECTOR3 d3dxvScale(8.0f, 3.0f, 8.0f);
 	D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
 
 	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
+	//m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/HeightMap.raw"), d3dxvScale, d3dxColor);
+
+	//2.25-1
+	m_ppObjects[0]->SetMaterial(pTerrainMaterial);
 
 	//터레인의 초기위치
 	//m_ppObjects[0]->SetPosition(-1250, 0, -1250);
@@ -286,4 +310,59 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 CHeightMapTerrain *CTerrainShader::GetTerrain()
 {
 	return ((CHeightMapTerrain*)m_ppObjects[0]);
+}
+
+//2.25
+ID3D11Buffer *CIlluminatedShader::m_pd3dcbMaterial = NULL;
+
+//2.25
+CIlluminatedShader::CIlluminatedShader()
+{
+}
+
+//2.25
+CIlluminatedShader::~CIlluminatedShader()
+{
+}
+
+//2.25
+void CIlluminatedShader::CreateShader(ID3D11Device *pd3dDevice)
+{
+	D3D11_INPUT_ELEMENT_DESC d3dInputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	UINT nElements = ARRAYSIZE(d3dInputElements);
+	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSLightingColor", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
+	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSLightingColor", "ps_5_0", &m_pd3dPixelShader);
+}
+
+//2.25
+void CIlluminatedShader::CreateShaderVariables(ID3D11Device *pd3dDevice)
+{
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	d3dBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	d3dBufferDesc.ByteWidth = sizeof(MATERIAL);
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, NULL, &m_pd3dcbMaterial);
+}
+
+//2.25
+void CIlluminatedShader::ReleaseShaderVariables()
+{
+	if (m_pd3dcbMaterial) m_pd3dcbMaterial->Release();
+}
+
+//2.25
+void CIlluminatedShader::UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, MATERIAL *pMaterial)
+{
+	D3D11_MAPPED_SUBRESOURCE d3dMappedResource;
+	pd3dDeviceContext->Map(m_pd3dcbMaterial, 0, D3D11_MAP_WRITE_DISCARD, 0, &d3dMappedResource);
+	MATERIAL *pcbMaterial = (MATERIAL *)d3dMappedResource.pData;
+	memcpy(pcbMaterial, pMaterial, sizeof(MATERIAL));
+	pd3dDeviceContext->Unmap(m_pd3dcbMaterial, 0);
+	pd3dDeviceContext->PSSetConstantBuffers(PS_SLOT_MATERIAL, 1, &m_pd3dcbMaterial);
 }

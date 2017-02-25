@@ -49,7 +49,9 @@ protected:
 	CCamera *m_pCamera;
 
 public:
-	D3DXVECTOR3 GetPosition() { return(m_d3dxvPosition); }
+	D3DXVECTOR3 GetPosition() { 
+		return(m_d3dxvPosition); 
+	}
 	D3DXVECTOR3 GetLookVector() { return(m_d3dxvLook); }
 	D3DXVECTOR3 GetUpVector() { return(m_d3dxvUp); }
 	D3DXVECTOR3 GetRightVector() { return(m_d3dxvRight); }

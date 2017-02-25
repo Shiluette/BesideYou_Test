@@ -31,6 +31,7 @@ CPlayer::~CPlayer()
 
 void CPlayer::CreateShaderVariables(ID3D11Device *pd3dDevice)
 {
+
 }
 
 void CPlayer::UpdateShaderVariables(ID3D11DeviceContext *pd3dDeviceContext)
@@ -276,6 +277,8 @@ void CPlayer::OnPrepareRender()
 
 void CPlayer::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
+	
+
 	CGameObject::Render(pd3dDeviceContext, pCamera);
 }
 

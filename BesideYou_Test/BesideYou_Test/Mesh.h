@@ -16,7 +16,6 @@ public:
 	void Merge(AABB *pAABB);
 	//바운딩 박스의 8개의 꼭지점을 행렬로 변환하고 최소점과 최대점을 다시 계산한다.
 	void Update(D3DXMATRIX *pd3dxmtxTransform);
-
 };
 
 class CVertex
@@ -97,7 +96,6 @@ public:
 	//정점 데이터를 렌더링하는 멤버 함수를 선언한다.
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
 
-	//05-1
 	virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
 
 	//메쉬의 정점 버퍼들을 배열로 조립한다. 
@@ -130,7 +128,39 @@ public:
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
 };
 
-class CHeightMapGridMesh : public CMesh
+
+
+//2.25
+class CMeshIlluminated : public CMesh
+{
+public:
+	CMeshIlluminated(ID3D11Device *pd3dDevice);
+	virtual ~CMeshIlluminated();
+
+protected:
+	//조명의 영향을 계산하기 위하여 법선벡터가 필요하다.
+	ID3D11Buffer *m_pd3dNormalBuffer;
+
+public:
+	//정점이 포함된 삼각형의 법선벡터를 계산하는 함수이다.
+	D3DXVECTOR3 CalculateTriAngleNormal(UINT nIndex0, UINT nIndex1, UINT nIndex2);
+	void SetTriAngleListVertexNormal(D3DXVECTOR3 *pd3dxvNormals);
+	//정점의 법선벡터의 평균을 계산하는 함수이다.
+	void SetAverageVertexNormal(D3DXVECTOR3 *pd3dxvNormals, int nPrimitives, int nOffset, bool bStrip);
+	void CalculateVertexNormal(D3DXVECTOR3 *pd3dxvNormals);
+};
+
+//2.25
+//조명을 사용하여 정점의 색상을 결정하기 위하여 정점이 법선벡터를 갖는 직육면체 메쉬 클래스이다.
+class CCubeMeshIlluminated : public CMeshIlluminated
+{
+public:
+	CCubeMeshIlluminated(ID3D11Device *pd3dDevice, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	virtual ~CCubeMeshIlluminated();
+};
+
+//2.25-1 CMesh에서 CMeshIlluminated로 바꿈
+class CHeightMapGridMesh : public CMeshIlluminated
 {
 	//격자의 크기(가로: x방향, 세로: z-방향) 이다.
 	int m_nWidth;
@@ -146,7 +176,7 @@ public:
 	CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int zStart, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale = D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXCOLOR d3dxColor = D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.0f), void *pContext = NULL);
 	virtual ~CHeightMapGridMesh();
 
-	virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
+	//virtual void CreateRasterizerState(ID3D11Device *pd3dDevice);
 
 	//격자의 교점(정점)의 높이를 설정한다.
 	virtual float OnGetHeight(int x, int z, void *pContext);

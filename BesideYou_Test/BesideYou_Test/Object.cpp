@@ -2,6 +2,17 @@
 //#include "Object.h"
 //#include "Shader.h"
 
+//2.25
+CMaterial::CMaterial()
+{
+	m_nReferences = 0;
+}
+
+//2.25
+CMaterial::~CMaterial()
+{
+}
+
 CGameObject::CGameObject(int nMeshes)
 {
 	D3DXMatrixIdentity(&m_d3dxmtxWorld);
@@ -12,6 +23,9 @@ CGameObject::CGameObject(int nMeshes)
 	for (int i = 0; i < m_nMeshes; i++) m_ppMeshes[i] = NULL;
 
 	m_nReferences = 0;
+
+	//2.25
+	m_pMaterial = NULL;
 }
 
 CGameObject::~CGameObject()
@@ -26,6 +40,9 @@ CGameObject::~CGameObject()
 		}
 		delete[] m_ppMeshes;
 	}	
+
+	//2.25
+	if (m_pMaterial) m_pMaterial->Release();
 }
 
 void CGameObject::AddRef()
@@ -37,6 +54,14 @@ void CGameObject::Release()
 {
 	if (m_nReferences > 0) m_nReferences--;
 	if (m_nReferences <= 0) delete this;
+}
+
+//2.25
+void CGameObject::SetMaterial(CMaterial *pMaterial)
+{
+	if (m_pMaterial) m_pMaterial->Release();
+	m_pMaterial = pMaterial;
+	if (m_pMaterial) m_pMaterial->AddRef();
 }
 
 void CGameObject::SetMesh(CMesh *pMesh, int nIndex)
@@ -76,6 +101,11 @@ D3DXVECTOR3 CGameObject::GetPosition()
 void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
 	CShader::UpdateShaderVariable(pd3dDeviceContext, &m_d3dxmtxWorld);
+
+	//2.25
+	//객체의 재질(상수버퍼)을 쉐이더 변수에 설정(연결)한다.
+	if (m_pMaterial)
+		CIlluminatedShader::UpdateShaderVariable(pd3dDeviceContext, &m_pMaterial->m_Material);
 
 	if (m_ppMeshes)
 	{

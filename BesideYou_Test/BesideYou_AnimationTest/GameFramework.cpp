@@ -321,7 +321,6 @@ void CGameFramework::BuildObjects()
 	m_pPlayerShader->BuildObjects(m_pd3dDevice);
 	m_pPlayer = m_pPlayerShader->GetPlayer();
 
-
 	/*지형의 xz-평면의 가운데에 플레이어가 위치하도록 한다. 
 	플레이어의 y-좌표가 지형의 높이 보다 크고 중력이 작용하도록 
 	플레이어를 설정하였으므로 플레이어는 점차적으로 하강하게 된다.*/

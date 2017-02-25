@@ -1,3 +1,5 @@
+#include "Light.fx"
+
 //------------- 상수 버퍼 ----------------//
 //VS(slot0)
 cbuffer cbViewProjectionMatrix : register(b0)
@@ -56,4 +58,92 @@ float4 PS(VS_OUTPUT input) : SV_Target
 }
 //----------------------------------------//
 //------------ 기본 쉐이더(o) ------------//
+//----------------------------------------//
+
+
+
+//----------------------------------------//
+//VSLightingColor,PSLightingColor
+//사용 : 조명
+
+// 조명을 사용하는 경우 정점 쉐이더의 입력을 위한 구조체이다.
+struct VS_LIGHTING_COLOR_INPUT
+{
+	float3 position : POSITION;
+	float3 normal : NORMAL;
+};
+
+// 조명을 사용하는 경우 정점 쉐이더의 출력을 위한 구조체이다.
+struct VS_LIGHTING_COLOR_OUTPUT
+{
+	float4 position : SV_POSITION;
+	// 월드좌표계에서 정점의 위치와 법선 벡터를 나타낸다.
+	float3 positionW : POSITION;
+	float3 normalW : NORMAL;
+};
+
+//조명의 영향을 계산하기 위한 정점의 법선 벡터와 정점의 위치를 계산하는 정점 쉐이더 함수이다.
+VS_LIGHTING_COLOR_OUTPUT VSLightingColor(VS_LIGHTING_COLOR_INPUT input)
+{
+	VS_LIGHTING_COLOR_OUTPUT output = (VS_LIGHTING_COLOR_OUTPUT)0;
+	//조명의 영향을 계산하기 위하여 월드좌표계에서 정점의 위치와 법선 벡터를 구한다.
+	output.normalW = mul(input.normal, (float3x3)gmtxWorld);
+	output.positionW = mul(float4(input.position, 1.0f), gmtxWorld).xyz;
+	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
+
+	return(output);
+}
+
+// 각 픽셀에 대하여 조명의 영향을 반영한 색상을 계산하기 위한 픽셀 쉐이더 함수이다.
+float4 PSLightingColor(VS_LIGHTING_COLOR_OUTPUT input) : SV_Target
+{
+	input.normalW = normalize(input.normalW);
+float4 cIllumination = Lighting(input.positionW, input.normalW);
+
+return(cIllumination);
+}
+//----------------------------------------//
+
+
+
+
+//----------------------------------------//
+//VSInstancedLightingColor,PSInstancedLightingColor
+//사용 : 객체 인스턴싱 + 조명효과
+//사용안함
+//두번째, 세번째, 네번째 쉐이더
+
+// 인스턴싱을 하면서 조명을 사용하는 경우 정점 쉐이더의 입력을 위한 구조체이다.
+struct VS_INSTANCED_LIGHTING_COLOR_INPUT
+{
+	float3 position : POSITION;
+	float3 normal : NORMAL;
+	float4x4 mtxTransform : INSTANCEPOS;
+};
+
+// 인스턴싱을 하면서 조명을 사용하는 경우 정점 쉐이더의 출력을 위한 구조체이다.
+struct VS_INSTANCED_LIGHTING_COLOR_OUTPUT
+{
+	float4 position : SV_POSITION;
+	float3 positionW : POSITION;
+	float3 normalW : NORMAL;
+};
+
+VS_INSTANCED_LIGHTING_COLOR_OUTPUT VSInstancedLightingColor(VS_INSTANCED_LIGHTING_COLOR_INPUT input)
+{
+	VS_INSTANCED_LIGHTING_COLOR_OUTPUT output = (VS_INSTANCED_LIGHTING_COLOR_OUTPUT)0;
+	output.normalW = mul(input.normal, (float3x3)input.mtxTransform);
+	output.positionW = mul(float4(input.position, 1.0f), input.mtxTransform).xyz;
+	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
+
+	return(output);
+}
+
+float4 PSInstancedLightingColor(VS_INSTANCED_LIGHTING_COLOR_OUTPUT input) : SV_Target
+{
+	input.normalW = normalize(input.normalW);
+float4 cIllumination = Lighting(input.positionW, input.normalW);		// 월드변환된 위치정보와 노멀정보를 통해 Lighting 계산
+
+return(cIllumination);
+}
 //----------------------------------------//

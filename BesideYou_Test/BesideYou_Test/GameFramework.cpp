@@ -319,6 +319,9 @@ void CGameFramework::BuildObjects()
 	//CShader 클래스의 정적(static) 멤버 변수로 선언된 상수 버퍼를 생성한다.
 	CShader::CreateShaderVariables(m_pd3dDevice);
 
+	//2.25
+	CIlluminatedShader::CreateShaderVariables(m_pd3dDevice);
+
 	m_pScene = new CScene();
 	m_pScene->BuildObjects(m_pd3dDevice);
 
@@ -328,12 +331,14 @@ void CGameFramework::BuildObjects()
 	m_pPlayer = m_pPlayerShader->GetPlayer();
 
 	CHeightMapTerrain * pTerrain = m_pScene->GetTerrain();
-	m_pPlayer->SetPosition(D3DXVECTOR3(pTerrain->GetWidth() * 0.5f, 1200.0f, pTerrain->GetLength() * 0.5f));
+	m_pPlayer->SetPosition(D3DXVECTOR3(pTerrain->GetWidth() * 0.5f, pTerrain->GetPeakHeight() + 1000.0f, pTerrain->GetLength() * 0.5f));
+	//m_pPlayer->SetPosition(D3DXVECTOR3(0, pTerrain->GetPeakHeight() + 1000.0f, 0));
 	//플레이어의 위치가 변경될 때 지형의 정보에 따라 플레이어의 위치를 변경할 수 있도록 설정한다.
 	m_pPlayer->SetPlayerUpdatedContext(pTerrain);
 	//카메라의 위치가 변경될 때 지형의 정보에 따라 카메라의 위치를 변경할 수 있도록 설정한다.
 	m_pPlayer->SetCameraUpdatedContext(pTerrain);
 
+	//이거 왜 있는거지?
 	m_pCamera = m_pPlayer->GetCamera();
 	m_pCamera->SetViewport(m_pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
 	m_pCamera->GenerateViewMatrix();

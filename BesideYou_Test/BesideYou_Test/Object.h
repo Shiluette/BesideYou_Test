@@ -3,6 +3,33 @@
 //#include "Camera.h"
 //#include "Mesh.h"
 
+//2.25
+//재질의 색상을 나타내는 구조체이다.
+struct MATERIAL
+{
+	D3DXCOLOR m_d3dxcAmbient;
+	D3DXCOLOR m_d3dxcDiffuse;
+	D3DXCOLOR m_d3dxcSpecular; //(r,g,b,a=power)
+	D3DXCOLOR m_d3dxcEmissive;
+};
+
+//2.25
+class CMaterial
+{
+public:
+	CMaterial();
+	virtual ~CMaterial();
+
+private:
+	int m_nReferences;
+
+public:
+	void AddRef() { m_nReferences++; }
+	void Release() { if (--m_nReferences <= 0) delete this; }
+
+	MATERIAL m_Material;
+};
+
 class CGameObject
 {
 private:
@@ -59,6 +86,12 @@ public:
 	bool IsVisible(CCamera *pCamera = NULL);
 private:
 	bool m_bActive;
+
+//2.25
+public:
+	//게임 객체는 하나의 재질을 가질 수 있다.
+	CMaterial *m_pMaterial;
+	void SetMaterial(CMaterial *pMaterial);
 };
 
 class CRotatingObject : public CGameObject
@@ -124,5 +157,5 @@ public:
 	//2.23
 	float GetWidth() { return(m_nWidth * m_d3dxvScale.x);}
 	float GetLength() { return(m_nLength * m_d3dxvScale.z);}
-	//float GetPeakHeight() {	return(m_bcMeshBoundingCube.m_d3dxvMaximum.y);}
+	float GetPeakHeight() {	return(m_bcMeshBoundingCube.m_d3dxvMaximum.y);}
 };

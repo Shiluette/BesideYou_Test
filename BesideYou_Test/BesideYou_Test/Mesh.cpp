@@ -121,109 +121,6 @@ void CMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
 {
 }
 
-CCubeMesh::CCubeMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth, D3DXCOLOR d3dxColor) : CMesh(pd3dDevice)
-{
-	m_nVertices = 8;
-	//프리미티브 유형을 삼각형 스트립(Triangle Strip)으로 설정한다.
-	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-
-	float fx = fWidth*0.5f, fy = fHeight*0.5f, fz = fDepth*0.5f;
-
-	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
-	m_pd3dxvPositions[0] = D3DXVECTOR3(-fx, +fy, -fz);
-	m_pd3dxvPositions[1] = D3DXVECTOR3(+fx, +fy, -fz);
-	m_pd3dxvPositions[2] = D3DXVECTOR3(+fx, +fy, +fz);
-	m_pd3dxvPositions[3] = D3DXVECTOR3(-fx, +fy, +fz);
-	m_pd3dxvPositions[4] = D3DXVECTOR3(-fx, -fy, -fz);
-	m_pd3dxvPositions[5] = D3DXVECTOR3(+fx, -fy, -fz);
-	m_pd3dxvPositions[6] = D3DXVECTOR3(+fx, -fy, +fz);
-	m_pd3dxvPositions[7] = D3DXVECTOR3(-fx, -fy, +fz);
-
-	D3D11_BUFFER_DESC d3dBufferDesc;
-	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
-	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	d3dBufferDesc.ByteWidth = sizeof(CDiffusedVertex) * m_nVertices;
-	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	d3dBufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA d3dBufferData;
-	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
-	d3dBufferData.pSysMem = m_pd3dxvPositions;
-	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
-
-	//직육면체 메쉬의 정점 버퍼(색상 버퍼)를 생성한다.
-	D3DXCOLOR pd3dxColors[8];
-	for (int i = 0; i < 8; i++) pd3dxColors[i] = d3dxColor;
-
-	d3dBufferDesc.ByteWidth = sizeof(D3DXCOLOR) * m_nVertices;
-	d3dBufferData.pSysMem = pd3dxColors;
-	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dColorBuffer);
-
-	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dColorBuffer };
-	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXCOLOR) };
-	UINT pnBufferOffsets[2] = { 0, 0 };
-	AssembleToVertexBuffer(2, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
-
-	/*삼각형 스트립(Triangle Strip)의 경우 각 삼각형은 마지막 2개의 정점과 새로운 정점 1개를 사용하여 구성된다. 그리고 삼각형의 와인딩 순서는 시계방향과 반시계방향이 번갈아 나타나야 한다. 반시계방향의 정점들은 Direct3D에서 내부적으로 시계방향으로 바뀌게 된다. 직육면체를 삼각형 스트립으로 표현할 때 가능한 적은 수의 인덱스를 사용하는 하나의 방법은 <그림 2>와 같이 16개의 인덱스를 사용하는 것이다. Direct3D에서 삼각형을 그릴 때 삼각형의 세 꼭지점이 기하적으로 삼각형을 나타낼 수 없으면 그려지지 않게 된다. 예를 들어, 두 개 이상의 점이 동일한 점이거나 세 개의 점이 하나의 직선 위에 있는 경우에는 삼각형이 그려지지 않는다(Degenerated Triangle). 또한 삼각형 스트립에서 시계방향의 삼각형을 그리는 순서에 반시계방향의 정점으로 구성된 삼각형이 주어지면 그려지지 않는다. 반시계방향의 경우에 시계방향의 정점으로 구성된 삼각형이 주어질 때도 그려지지 않을 것이다.*/
-	m_nIndices = 16;
-	UINT pIndices[16];
-	pIndices[0] = 5; //5,6,4 - cw
-	pIndices[1] = 6; //6,4,7 - ccw
-	pIndices[2] = 4; //4,7,0 - cw
-	pIndices[3] = 7; //7,0,3 - ccw
-	pIndices[4] = 0; //0,3,1 - cw
-	pIndices[5] = 3; //3,1,2 - ccw
-	pIndices[6] = 1; //1,2,3 - cw 
-	pIndices[7] = 2; //2,3,7 - ccw
-	pIndices[8] = 3; //3,7,2 - cw – Degenerated Index (3)
-	pIndices[9] = 7; //7,2,6 - ccw
-	pIndices[10] = 2;//2,6,1 - cw
-	pIndices[11] = 6;//6,1,5 - ccw
-	pIndices[12] = 1;//1,5,0 - cw
-	pIndices[13] = 5;//5,0,4 - ccw
-	pIndices[14] = 0;
-	pIndices[15] = 4;
-
-	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
-	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	d3dBufferDesc.ByteWidth = sizeof(UINT) * m_nIndices;
-	d3dBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	d3dBufferDesc.CPUAccessFlags = 0;
-	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
-	d3dBufferData.pSysMem = pIndices;
-	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dIndexBuffer);
-
-	CreateRasterizerState(pd3dDevice);
-
-	//2.23-1
-	//정점 버퍼 데이터를 생성한 다음 최소점과 최대점을 저장한다. 
-	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(-fx, -fy, -fz);
-	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(+fx, +fy, +fz);
-}
-
-CCubeMesh::~CCubeMesh()
-{
-}
-
-void CCubeMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
-{
-	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
-	ZeroMemory(&d3dRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
-
-	//071
-	/*D3D11_CULL_NONE은 은면 제거를 하지 않음을 나타낸다. 즉, 모든 프리미티브를 그린다. D3D11_FILL_WIREFRAME은 프리미티브를 선분으로만 그린다.*/
-	d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
-	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	/*은면 제거를 하지 않고 그리면 위의 두 가지 경우(16개의 인덱스를 사용한 경우와 18개의 인덱스를 사용한 경우)의 출력의 결과가 같을 것이다. 하지만 은면 제거를 하도록 하면 18개의 인덱스를 사용한 경우에만 제대로 그려질 것이다.*/
-	//d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
-
-	pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
-}
-
-void CCubeMesh::Render(ID3D11DeviceContext *pd3dDeviceContext)
-{
-	CMesh::Render(pd3dDeviceContext);
-}
-
 void CMesh::AssembleToVertexBuffer(int nBuffers, ID3D11Buffer **ppd3dBuffers, UINT *pnBufferStrides, UINT *pnBufferOffsets)
 {
 	ID3D11Buffer **ppd3dNewVertexBuffers = new ID3D11Buffer*[m_nBuffers + nBuffers];
@@ -254,6 +151,112 @@ void CMesh::AssembleToVertexBuffer(int nBuffers, ID3D11Buffer **ppd3dBuffers, UI
 	m_ppd3dVertexBuffers = ppd3dNewVertexBuffers;
 	m_pnVertexStrides = pnNewVertexStrides;
 	m_pnVertexOffsets = pnNewVertexOffsets;
+}
+
+CCubeMesh::CCubeMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth, D3DXCOLOR d3dxColor) : CMesh(pd3dDevice)
+{
+	m_nVertices = 8;
+	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+
+	float fx = fWidth*0.5f, fy = fHeight*0.5f, fz = fDepth*0.5f;
+
+	//직육면체 메쉬는 2개의 정점 버퍼(위치 벡터 버퍼와 색상 버퍼)로 구성된다.
+	//직육면체 메쉬의 정점 버퍼(위치 벡터 버퍼)를 생성한다.
+	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
+	m_pd3dxvPositions[0] = D3DXVECTOR3(-fx, +fy, -fz);
+	m_pd3dxvPositions[1] = D3DXVECTOR3(+fx, +fy, -fz);
+	m_pd3dxvPositions[2] = D3DXVECTOR3(+fx, +fy, +fz);
+	m_pd3dxvPositions[3] = D3DXVECTOR3(-fx, +fy, +fz);
+	m_pd3dxvPositions[4] = D3DXVECTOR3(-fx, -fy, -fz);
+	m_pd3dxvPositions[5] = D3DXVECTOR3(+fx, -fy, -fz);
+	m_pd3dxvPositions[6] = D3DXVECTOR3(+fx, -fy, +fz);
+	m_pd3dxvPositions[7] = D3DXVECTOR3(-fx, -fy, +fz);
+
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA d3dBufferData;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pd3dxvPositions;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
+
+	//직육면체 메쉬의 정점 버퍼(색상 버퍼)를 생성한다.
+	D3DXCOLOR pd3dxColors[8];
+	for (int i = 0; i < 8; i++) pd3dxColors[i] = d3dxColor;
+
+	d3dBufferDesc.ByteWidth = sizeof(D3DXCOLOR) * m_nVertices;
+	d3dBufferData.pSysMem = pd3dxColors;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dColorBuffer);
+
+	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dColorBuffer };
+	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXCOLOR) };
+	UINT pnBufferOffsets[2] = { 0, 0 };
+	AssembleToVertexBuffer(2, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
+
+	m_nIndices = 18;
+
+	m_pnIndices = new UINT[m_nIndices];
+	m_pnIndices[0] = 5; //5,6,4 - cw
+	m_pnIndices[1] = 6; //6,4,7 - ccw
+	m_pnIndices[2] = 4; //4,7,0 - cw
+	m_pnIndices[3] = 7; //7,0,3 - ccw
+	m_pnIndices[4] = 0; //0,3,1 - cw
+	m_pnIndices[5] = 3; //3,1,2 - ccw
+	m_pnIndices[6] = 1; //1,2,3 - cw 
+	m_pnIndices[7] = 2; //2,2,3 - ccw
+	m_pnIndices[8] = 2; //2,3,3 - cw  - Degenerated Index(2)
+	m_pnIndices[9] = 3; //3,3,7 - ccw - Degenerated Index(3)
+	m_pnIndices[10] = 3;//3,7,2 - cw  - Degenerated Index(3)
+	m_pnIndices[11] = 7;//7,2,6 - ccw
+	m_pnIndices[12] = 2;//2,6,1 - cw
+	m_pnIndices[13] = 6;//6,1,5 - ccw
+	m_pnIndices[14] = 1;//1,5,0 - cw
+	m_pnIndices[15] = 5;//5,0,4 - ccw
+	m_pnIndices[16] = 0;
+	m_pnIndices[17] = 4;
+
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(UINT) * m_nIndices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pnIndices;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dIndexBuffer);
+
+	CreateRasterizerState(pd3dDevice);
+
+	//0730
+	//정점 버퍼 데이터를 생성한 다음 최소점과 최대점을 저장한다. 
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(-fx, -fy, -fz);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(+fx, +fy, +fz);
+}
+
+CCubeMesh::~CCubeMesh()
+{
+}
+
+void CCubeMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
+{
+	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
+	ZeroMemory(&d3dRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+
+	//071
+	/*D3D11_CULL_NONE은 은면 제거를 하지 않음을 나타낸다. 즉, 모든 프리미티브를 그린다. D3D11_FILL_WIREFRAME은 프리미티브를 선분으로만 그린다.*/
+	d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
+	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	/*은면 제거를 하지 않고 그리면 위의 두 가지 경우(16개의 인덱스를 사용한 경우와 18개의 인덱스를 사용한 경우)의 출력의 결과가 같을 것이다. 하지만 은면 제거를 하도록 하면 18개의 인덱스를 사용한 경우에만 제대로 그려질 것이다.*/
+	//d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
+
+	pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
+}
+
+void CCubeMesh::Render(ID3D11DeviceContext *pd3dDeviceContext)
+{
+	CMesh::Render(pd3dDeviceContext);
 }
 
 CAirplaneMesh::CAirplaneMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth, D3DXCOLOR d3dxColor) : CMesh(pd3dDevice)
@@ -390,7 +393,166 @@ CAirplaneMesh::~CAirplaneMesh()
 {
 }
 
-CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int zStart, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor, void *pContext) : CMesh(pd3dDevice)
+//2.25
+CMeshIlluminated::CMeshIlluminated(ID3D11Device *pd3dDevice) : CMesh(pd3dDevice)
+{
+	m_pd3dNormalBuffer = NULL;
+}
+
+//2.25
+CMeshIlluminated::~CMeshIlluminated()
+{
+	if (m_pd3dNormalBuffer) m_pd3dNormalBuffer->Release();
+}
+
+//2.25
+void CMeshIlluminated::CalculateVertexNormal(D3DXVECTOR3 *pd3dxvNormals)
+{
+	switch (m_d3dPrimitiveTopology)
+	{
+		/*프리미티브가 삼각형 리스트일 때 인덱스 버퍼가 있는 경우와 없는 경우를 구분하여 정점의 법선 벡터를 계산한다. 인덱스 버퍼를 사용하지 않는 경우 각 정점의 법선 벡터는 그 정점이 포함된 삼각형의 법선 벡터로 계산한다. 인덱스 버퍼를 사용하는 경우 각 정점의 법선 벡터는 그 정점이 포함된 삼각형들의 법선 벡터의 평균으로(더하여) 계산한다.*/
+	case D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST:
+		if (m_pnIndices)
+			SetAverageVertexNormal(pd3dxvNormals, (m_nIndices / 3), 3, false);
+		else
+			SetTriAngleListVertexNormal(pd3dxvNormals);
+		break;
+		/*프리미티브가 삼각형 스트립일 때 각 정점의 법선 벡터는 그 정점이 포함된 삼각형들의 법선 벡터의 평균으로(더하여) 계산한다.*/
+	case D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP:
+		SetAverageVertexNormal(pd3dxvNormals, (m_nIndices) ? (m_nIndices - 2) : (m_nVertices - 2), 1, true);
+		break;
+	default:
+		break;
+	}
+}
+
+//2.25
+//인덱스 버퍼를 사용하지 않는 삼각형 리스트에 대하여 정점의 법선 벡터를 계산한다.
+void CMeshIlluminated::SetTriAngleListVertexNormal(D3DXVECTOR3 *pd3dxvNormals)
+{
+	/*삼각형(프리미티브)의 개수를 구하고 각 삼각형의 법선 벡터를 계산하고 삼각형을 구성하는 각 정점의 법선 벡터로 지정한다.*/
+	int nPrimitives = m_nVertices / 3;
+	for (int i = 0; i < nPrimitives; i++)
+	{
+		D3DXVECTOR3 d3dxvNormal = CalculateTriAngleNormal((i * 3 + 0), (i * 3 + 1), (i * 3 + 2));
+		pd3dxvNormals[i * 3 + 0] = pd3dxvNormals[i * 3 + 1] = pd3dxvNormals[i * 3 + 2] = d3dxvNormal;
+	}
+}
+
+//2.25
+//삼각형의 세 정점을 사용하여 삼각형의 법선 벡터를 계산한다.
+D3DXVECTOR3 CMeshIlluminated::CalculateTriAngleNormal(UINT nIndex0, UINT nIndex1, UINT nIndex2)
+{
+	D3DXVECTOR3 d3dxvNormal;
+	D3DXVECTOR3 d3dxvP0 = m_pd3dxvPositions[nIndex0];
+	D3DXVECTOR3 d3dxvP1 = m_pd3dxvPositions[nIndex1];
+	D3DXVECTOR3 d3dxvP2 = m_pd3dxvPositions[nIndex2];
+	D3DXVECTOR3 d3dxvEdge1 = d3dxvP1 - d3dxvP0;
+	D3DXVECTOR3 d3dxvEdge2 = d3dxvP2 - d3dxvP0;
+	D3DXVec3Cross(&d3dxvNormal, &d3dxvEdge1, &d3dxvEdge2);
+	D3DXVec3Normalize(&d3dxvNormal, &d3dxvNormal);
+	return(d3dxvNormal);
+}
+
+//2.25
+/*프리미티브가 인덱스 버퍼를 사용하는 삼각형 리스트 또는 삼각형 스트립인 경우 정점의 법선 벡터는 그 정점을 포함하는 삼각형의 법선 벡터들의 평균으로 계산한다.*/
+void CMeshIlluminated::SetAverageVertexNormal(D3DXVECTOR3 *pd3dxvNormals, int nPrimitives, int nOffset, bool bStrip)
+{
+	for (int j = 0; j < m_nVertices; j++)
+	{
+		D3DXVECTOR3 d3dxvSumOfNormal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		for (int i = 0; i < nPrimitives; i++)
+		{
+			UINT nIndex0 = (bStrip) ? (((i % 2) == 0) ? (i*nOffset + 0) : (i*nOffset + 1)) : (i*nOffset + 0);
+			if (m_pnIndices) nIndex0 = m_pnIndices[nIndex0];
+			UINT nIndex1 = (bStrip) ? (((i % 2) == 0) ? (i*nOffset + 1) : (i*nOffset + 0)) : (i*nOffset + 1);
+			if (m_pnIndices) nIndex1 = m_pnIndices[nIndex1];
+			UINT nIndex2 = (m_pnIndices) ? m_pnIndices[i*nOffset + 2] : (i*nOffset + 2);
+			if ((nIndex0 == j) || (nIndex1 == j) || (nIndex2 == j)) d3dxvSumOfNormal += CalculateTriAngleNormal(nIndex0, nIndex1, nIndex2);
+		}
+		D3DXVec3Normalize(&d3dxvSumOfNormal, &d3dxvSumOfNormal);
+		pd3dxvNormals[j] = d3dxvSumOfNormal;
+	}
+}
+
+//2.25
+CCubeMeshIlluminated::CCubeMeshIlluminated(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth) : CMeshIlluminated(pd3dDevice)
+{
+	m_nVertices = 8;
+	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	float fx = fWidth*0.5f, fy = fHeight*0.5f, fz = fDepth*0.5f;
+
+	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
+
+	m_pd3dxvPositions[0] = D3DXVECTOR3(-fx, +fy, -fz);
+	m_pd3dxvPositions[1] = D3DXVECTOR3(+fx, +fy, -fz);
+	m_pd3dxvPositions[2] = D3DXVECTOR3(+fx, +fy, +fz);
+	m_pd3dxvPositions[3] = D3DXVECTOR3(-fx, +fy, +fz);
+	m_pd3dxvPositions[4] = D3DXVECTOR3(-fx, -fy, -fz);
+	m_pd3dxvPositions[5] = D3DXVECTOR3(+fx, -fy, -fz);
+	m_pd3dxvPositions[6] = D3DXVECTOR3(+fx, -fy, +fz);
+	m_pd3dxvPositions[7] = D3DXVECTOR3(-fx, -fy, +fz);
+
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA d3dBufferData;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pd3dxvPositions;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
+
+	m_nIndices = 36;
+	m_pnIndices = new UINT[m_nIndices];
+
+	m_pnIndices[0] = 3; m_pnIndices[1] = 1; m_pnIndices[2] = 0;
+	m_pnIndices[3] = 2; m_pnIndices[4] = 1; m_pnIndices[5] = 3;
+	m_pnIndices[6] = 0; m_pnIndices[7] = 5; m_pnIndices[8] = 4;
+	m_pnIndices[9] = 1; m_pnIndices[10] = 5; m_pnIndices[11] = 0;
+	m_pnIndices[12] = 3; m_pnIndices[13] = 4; m_pnIndices[14] = 7;
+	m_pnIndices[15] = 0; m_pnIndices[16] = 4; m_pnIndices[17] = 3;
+	m_pnIndices[18] = 1; m_pnIndices[19] = 6; m_pnIndices[20] = 5;
+	m_pnIndices[21] = 2; m_pnIndices[22] = 6; m_pnIndices[23] = 1;
+	m_pnIndices[24] = 2; m_pnIndices[25] = 7; m_pnIndices[26] = 6;
+	m_pnIndices[27] = 3; m_pnIndices[28] = 7; m_pnIndices[29] = 2;
+	m_pnIndices[30] = 6; m_pnIndices[31] = 4; m_pnIndices[32] = 5;
+	m_pnIndices[33] = 7; m_pnIndices[34] = 4; m_pnIndices[35] = 6;
+
+	D3DXVECTOR3 pd3dxvNormals[8];
+	CalculateVertexNormal(pd3dxvNormals);
+
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
+	d3dBufferData.pSysMem = pd3dxvNormals;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dNormalBuffer);
+
+	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dNormalBuffer };
+	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR3) };
+	UINT pnBufferOffsets[2] = { 0, 0 };
+	AssembleToVertexBuffer(2, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
+
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(UINT) * m_nIndices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pnIndices;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dIndexBuffer);
+
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(-fx, -fy, -fz);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(+fx, +fy, +fz);
+}
+
+//2.25
+CCubeMeshIlluminated::~CCubeMeshIlluminated()
+{
+}
+
+//2.25-1
+CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int zStart, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor, void *pContext) : CMeshIlluminated(pd3dDevice)
 {
 	//격자의 교점(정점)의 개수는 (nWidth * nLength)이다.
 	m_nVertices = nWidth * nLength;
@@ -398,12 +560,13 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 
 	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
-	D3DXCOLOR *pd3dxColors = new D3DXCOLOR[m_nVertices];
+	D3DXVECTOR3 *pd3dxvNormals = new D3DXVECTOR3[m_nVertices];
 
 	m_nWidth = nWidth;
 	m_nLength = nLength;
 	m_d3dxvScale = d3dxvScale;
 
+	CHeightMap *pHeightMap = (CHeightMap *)pContext;
 	float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
 	///*xStart와 zStart는 격자의 시작 위치(x-좌표와 z-좌표)를 나타낸다.
 	//지형을 격자들의 이차원 배열로 만들 것이기 때문에 지형에서 각 격자의
@@ -417,20 +580,11 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 			//정점의 높이와 색상을 높이 맵으로부터 구한다.
 			fHeight = OnGetHeight(x, z, pContext);
 			m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), fHeight, (z*m_d3dxvScale.z));
-			pd3dxColors[i] = OnGetColor(x, z, pContext) + d3dxColor;
+			pd3dxvNormals[i] = pHeightMap->GetHeightMapNormal(x, z);
 			if (fHeight < fMinHeight) fMinHeight = fHeight;
 			if (fHeight > fMaxHeight) fMaxHeight = fHeight;
 		}
 	}
-
-	/*for (int i = 0, z = zStart; z < (zStart + nLength); z++)
-	{
-	for (int x = xStart; x < (xStart + nWidth); x++, i++)
-	{
-	m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), 0, (z*m_d3dxvScale.z));
-	pd3dxColors[i] = d3dxColor;
-	}
-	}*/
 
 	D3D11_BUFFER_DESC d3dBufferDesc;
 	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
@@ -443,16 +597,17 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	d3dBufferData.pSysMem = m_pd3dxvPositions;
 	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
 
-	d3dBufferDesc.ByteWidth = sizeof(D3DXCOLOR)* m_nVertices;
-	d3dBufferData.pSysMem = pd3dxColors;
-	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dColorBuffer);
+	d3dBufferData.pSysMem = pd3dxvNormals;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dNormalBuffer);
 
-	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dColorBuffer };
-	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXCOLOR) };
+	if (pd3dxvNormals) delete[] pd3dxvNormals;
+
+	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dNormalBuffer };
+	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR3) };
 	UINT pnBufferOffsets[2] = { 0, 0 };
 	AssembleToVertexBuffer(2, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
 
-	delete[] pd3dxColors;
+	//elete[] pd3dxColors;
 
 	m_nIndices = ((nWidth * 2)*(nLength - 1)) + ((nLength - 1) - 1);
 	m_pnIndices = new UINT[m_nIndices];
@@ -494,27 +649,28 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dIndexBuffer);
 
 	CreateRasterizerState(pd3dDevice);
+
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(xStart*m_d3dxvScale.x, fMinHeight, zStart*m_d3dxvScale.z);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3((xStart + nWidth)*m_d3dxvScale.x, fMaxHeight, (zStart + nLength)*m_d3dxvScale.z);
 }
-
-
 
 CHeightMapGridMesh::~CHeightMapGridMesh()
 {
 }
 
-void CHeightMapGridMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
-{
-	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
-	ZeroMemory(&d3dRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
-
-	/*D3D11_CULL_NONE은 은면 제거를 하지 않음을 나타낸다. 즉, 모든 프리미티브를 그린다. D3D11_FILL_WIREFRAME은 프리미티브를 선분으로만 그린다.*/
-	d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
-	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	/*은면 제거를 하지 않고 그리면 위의 두 가지 경우(16개의 인덱스를 사용한 경우와 18개의 인덱스를 사용한 경우)의 출력의 결과가 같을 것이다. 하지만 은면 제거를 하도록 하면 18개의 인덱스를 사용한 경우에만 제대로 그려질 것이다.*/
-	//d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
-
-	//pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
-}
+//void CHeightMapGridMesh::CreateRasterizerState(ID3D11Device *pd3dDevice)
+//{
+//	D3D11_RASTERIZER_DESC d3dRasterizerDesc;
+//	ZeroMemory(&d3dRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+//
+//	/*D3D11_CULL_NONE은 은면 제거를 하지 않음을 나타낸다. 즉, 모든 프리미티브를 그린다. D3D11_FILL_WIREFRAME은 프리미티브를 선분으로만 그린다.*/
+//	d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
+//	d3dRasterizerDesc.FillMode = D3D11_FILL_SOLID;
+//	/*은면 제거를 하지 않고 그리면 위의 두 가지 경우(16개의 인덱스를 사용한 경우와 18개의 인덱스를 사용한 경우)의 출력의 결과가 같을 것이다. 하지만 은면 제거를 하도록 하면 18개의 인덱스를 사용한 경우에만 제대로 그려질 것이다.*/
+//	//d3dRasterizerDesc.CullMode = D3D11_CULL_BACK;
+//
+//	//pd3dDevice->CreateRasterizerState(&d3dRasterizerDesc, &m_pd3dRasterizerState);
+//}
 
 float CHeightMapGridMesh::OnGetHeight(int x, int z, void *pContext)
 {

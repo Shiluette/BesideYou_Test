@@ -149,7 +149,9 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ClientHeader.h" />
     <ClInclude Include="GameFramework.h" />
+    <ClInclude Include="IlluminatedShader.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshIlluminated.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Resource.h" />
@@ -163,7 +165,9 @@
     <ClCompile Include="BesideYou_Test.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GameFramework.cpp" />
+    <ClCompile Include="IlluminatedShader.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshIlluminated.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -186,6 +190,9 @@
   <ItemGroup>
     <FxCompile Include="Effect.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Light.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
