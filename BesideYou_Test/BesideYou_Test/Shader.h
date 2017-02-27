@@ -90,13 +90,39 @@ public:
 	static void UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, MATERIAL *pMaterial);
 };
 
+
+
+//2.26
+class CTexturedShader : public CShader
+{
+public:
+	CTexturedShader();
+	virtual ~CTexturedShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+};
+
+//2.27-1
+class CDetailTexturedShader : public CTexturedShader
+{
+public:
+	CDetailTexturedShader();
+	virtual ~CDetailTexturedShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+};
+
 //2.25
 //플레이어를 렌더링하기 위한 쉐이더 클래스이다.
-class CPlayerShader : public CIlluminatedShader
+class CPlayerShader : public CTexturedShader
 {
 	//2.25
 private:
 	CMaterial *m_pMaterial;
+
+	//2.26
+private:
+	CTexture *m_pTexture;
 
 public:
 	CPlayerShader();
@@ -109,8 +135,31 @@ public:
 	CPlayer *GetPlayer(int nIndex = 0) { return((CPlayer *)m_ppObjects[nIndex]); }
 };
 
+//2.27-2
+class CTexturedIlluminatedShader : public CIlluminatedShader
+{
+public:
+	CTexturedIlluminatedShader();
+	virtual ~CTexturedIlluminatedShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+};
+
+//2.27-2
+class CDetailTexturedIlluminatedShader : public CTexturedIlluminatedShader
+{
+public:
+	CDetailTexturedIlluminatedShader();
+	virtual ~CDetailTexturedIlluminatedShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+};
+
 //2.25-1 CShader를 CIlluminatedShader로 바꿈
-class CTerrainShader : public CIlluminatedShader
+//2.27 CIlluminatedShader를 CTexturedShader로 변경한다.
+//2.27-1 CTexturedShader를 CDetailTexturedShader로 변경한다.
+//2.27-2 CDetailTexturedShader를 CDetailTexturedIlluminatedShader로 변경한다.
+class CTerrainShader : public CDetailTexturedIlluminatedShader
 {
 public:
 	CTerrainShader();

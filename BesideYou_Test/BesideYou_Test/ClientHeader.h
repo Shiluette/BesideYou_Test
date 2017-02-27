@@ -79,4 +79,11 @@
 #define DIR_UP		0x10
 #define DIR_DOWN	0x20
 
+//texture
+//텍스쳐와 샘플러 상태를 설정하기 위한 쉐이더의 슬롯 번호를 정의한다. 
+#define PS_SLOT_TEXTURE		0x00
+#define PS_SLOT_SAMPLER_STATE		0x00
+
+
+
 //---------------------------------------------------------------------------------------------

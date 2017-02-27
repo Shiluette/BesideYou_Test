@@ -25,6 +25,17 @@ cbuffer cbColor : register(b0)
 
 
 //----------------------------------------//
+Texture2D gtxtTexture : register(t0);
+SamplerState gSamplerState : register(s0);
+
+Texture2D gtxtDetailTexture : register(t1);
+SamplerState gDetailSamplerState : register(s1);
+//----------------------------------------//
+
+
+
+
+//----------------------------------------//
 //------------ 기본 쉐이더(o) ------------//
 //----------------------------------------//
 struct VS_INPUT
@@ -59,6 +70,8 @@ float4 PS(VS_OUTPUT input) : SV_Target
 //----------------------------------------//
 //------------ 기본 쉐이더(o) ------------//
 //----------------------------------------//
+
+
 
 
 
@@ -107,6 +120,7 @@ return(cIllumination);
 
 
 
+
 //----------------------------------------//
 //VSInstancedLightingColor,PSInstancedLightingColor
 //사용 : 객체 인스턴싱 + 조명효과
@@ -147,3 +161,180 @@ float4 cIllumination = Lighting(input.positionW, input.normalW);		// 월드변환된 
 return(cIllumination);
 }
 //----------------------------------------//
+
+
+
+
+//------------------------------------------//
+//VSTexturedColor,PSTexturedColor
+//사용 : SkyBox, player
+//사용중
+
+struct VS_TEXTURED_COLOR_INPUT
+{
+	float3 position : POSITION;
+	float2 texCoord : TEXCOORD0;
+};
+
+//텍스쳐를 사용하는 경우 정점 쉐이더의 출력을 위한 구조체이다.
+struct VS_TEXTURED_COLOR_OUTPUT
+{
+	float4 position : SV_POSITION;
+	float2 texCoord : TEXCOORD0;
+};
+
+VS_TEXTURED_COLOR_OUTPUT VSTexturedColor(VS_TEXTURED_COLOR_INPUT input)
+{
+	VS_TEXTURED_COLOR_OUTPUT output = (VS_TEXTURED_COLOR_OUTPUT)0;
+	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxWorld), gmtxView), gmtxProjection);
+	output.texCoord = input.texCoord;
+
+	return(output);
+}
+
+//각 픽셀에 대하여 텍스쳐 샘플링을 하기 위한 픽셀 쉐이더 함수이다.
+float4 PSTexturedColor(VS_TEXTURED_COLOR_OUTPUT input) : SV_Target
+{
+	float4 cColor = gtxtTexture.Sample(gSamplerState, input.texCoord);
+
+	return(cColor);
+}
+//------------------------------------------//
+
+
+
+
+//------------------------------------------//
+//VSDetailTexturedColor,PSDetailTexturedColor
+//사용 : 디테일텍스쳐
+//사용함
+
+//디테일 텍스쳐를 사용하는 경우 정점 쉐이더의 입력과 출력을 위한 구조체이다.
+struct VS_DETAIL_TEXTURED_COLOR_INPUT
+{
+	float3 position : POSITION;
+	float2 texCoordBase : TEXCOORD0;
+	float2 texCoordDetail : TEXCOORD1;
+};
+
+struct VS_DETAIL_TEXTURED_COLOR_OUTPUT
+{
+	float4 position : SV_POSITION;
+	float2 texCoordBase : TEXCOORD0;
+	float2 texCoordDetail : TEXCOORD1;
+};
+
+VS_DETAIL_TEXTURED_COLOR_OUTPUT VSDetailTexturedColor(VS_DETAIL_TEXTURED_COLOR_INPUT input)
+{
+	VS_DETAIL_TEXTURED_COLOR_OUTPUT output = (VS_DETAIL_TEXTURED_COLOR_OUTPUT)0;
+	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxWorld), gmtxView), gmtxProjection);
+	output.texCoordBase = input.texCoordBase;
+	output.texCoordDetail = input.texCoordDetail;
+
+	return(output);
+}
+
+float4 PSDetailTexturedColor(VS_DETAIL_TEXTURED_COLOR_OUTPUT input) : SV_Target
+{
+	float4 cBaseTexColor = gtxtTexture.Sample(gSamplerState, input.texCoordBase);
+	float4 cDetailTexColor = gtxtDetailTexture.Sample(gDetailSamplerState, input.texCoordDetail);
+	float4 cColor = saturate((cBaseTexColor * 0.5f) + (cDetailTexColor * 0.5f));
+
+	return(cColor);
+}
+//------------------------------------------//
+
+
+
+
+//------------------------------------------//
+//VSTexturedLightingColor, PSTexturedLightingColor
+//사용안함
+
+//텍스쳐와 조명을 같이 사용하는 경우 정점 쉐이더의 입력을 위한 구조체이다.
+struct VS_TEXTURED_LIGHTING_COLOR_INPUT
+{
+	float3 position : POSITION;
+	float3 normal : NORMAL;
+	float2 texCoord : TEXCOORD0;
+};
+
+//텍스쳐와 조명을 같이 사용하는 경우 정점 쉐이더의 출력을 위한 구조체이다.
+struct VS_TEXTURED_LIGHTING_COLOR_OUTPUT
+{
+	float4 position : SV_POSITION;
+	float3 positionW : POSITION;
+	float3 normalW : NORMAL;
+	float2 texCoord : TEXCOORD0;
+};
+
+VS_TEXTURED_LIGHTING_COLOR_OUTPUT VSTexturedLightingColor(VS_TEXTURED_LIGHTING_COLOR_INPUT input)
+{
+	VS_TEXTURED_LIGHTING_COLOR_OUTPUT output = (VS_TEXTURED_LIGHTING_COLOR_OUTPUT)0;
+	output.normalW = mul(input.normal, (float3x3)gmtxWorld);
+	output.positionW = mul(float4(input.position, 1.0f), gmtxWorld).xyz;
+	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
+	output.texCoord = input.texCoord;
+
+	return(output);
+}
+
+float4 PSTexturedLightingColor(VS_TEXTURED_LIGHTING_COLOR_OUTPUT input) : SV_Target
+{
+	input.normalW = normalize(input.normalW);
+float4 cIllumination = Lighting(input.positionW, input.normalW);
+float4 cColor = gtxtTexture.Sample(gSamplerState, input.texCoord) * cIllumination;
+
+return(cColor);
+}
+//------------------------------------------//
+
+
+
+//-------------------------------------------//
+//VSDetailTexturedLightingColor,PSDetailTexturedLightingColor
+//Terrian
+//사용중
+
+//디테일 텍스쳐와 조명을 같이 사용하는 경우 정점 쉐이더의 입력을 위한 구조체이다.
+struct VS_DETAIL_TEXTURED_LIGHTING_COLOR_INPUT
+{
+	float3 position : POSITION;
+	float3 normal : NORMAL;
+	float2 texCoordBase : TEXCOORD0;
+	float2 texCoordDetail : TEXCOORD1;
+};
+
+//디테일 텍스쳐와 조명을 같이 사용하는 경우 정점 쉐이더의 출력을 위한 구조체이다.
+struct VS_DETAIL_TEXTURED_LIGHTING_COLOR_OUTPUT
+{
+	float4 position : SV_POSITION;
+	float3 positionW : POSITION;
+	float3 normalW : NORMAL;
+	float2 texCoordBase : TEXCOORD0;
+	float2 texCoordDetail : TEXCOORD1;
+};
+
+VS_DETAIL_TEXTURED_LIGHTING_COLOR_OUTPUT VSDetailTexturedLightingColor(VS_DETAIL_TEXTURED_LIGHTING_COLOR_INPUT input)
+{
+	VS_DETAIL_TEXTURED_LIGHTING_COLOR_OUTPUT output = (VS_DETAIL_TEXTURED_LIGHTING_COLOR_OUTPUT)0;
+	output.normalW = mul(input.normal, (float3x3)gmtxWorld);
+	output.positionW = mul(float4(input.position, 1.0f), gmtxWorld).xyz;
+	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
+	output.texCoordBase = input.texCoordBase;
+	output.texCoordDetail = input.texCoordDetail;
+
+	return(output);
+}
+
+float4 PSDetailTexturedLightingColor(VS_DETAIL_TEXTURED_LIGHTING_COLOR_OUTPUT input) : SV_Target
+{
+	input.normalW = normalize(input.normalW);
+float4 cIllumination = Lighting(input.positionW, input.normalW);
+float4 cBaseTexColor = gtxtTexture.Sample(gSamplerState, input.texCoordBase);
+float4 cDetailTexColor = gtxtDetailTexture.Sample(gDetailSamplerState, input.texCoordDetail);
+float4 cColor = saturate((cBaseTexColor * 0.5f) + (cDetailTexColor * 0.5f));
+
+return(cColor*cIllumination);
+}
+//-----------------------------------------------//

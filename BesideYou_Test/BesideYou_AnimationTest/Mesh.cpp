@@ -1757,9 +1757,9 @@ CAssetMesh::CAssetMesh(ID3D11Device *pd3dDevice, const std::string& filename, un
 
 	for (int i = 0; i < m_nVertices; ++i)
 	{
-		m_pd3dxvPositions[i].x *= 100.0f;
-		m_pd3dxvPositions[i].y *= 100.0f;
-		m_pd3dxvPositions[i].z *= 100.0f;
+		m_pd3dxvPositions[i].x *= 10.0f;
+		m_pd3dxvPositions[i].y *= 10.0f;
+		m_pd3dxvPositions[i].z *= 10.0f;
 
 	}
 

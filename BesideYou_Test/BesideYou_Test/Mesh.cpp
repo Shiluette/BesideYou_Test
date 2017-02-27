@@ -552,35 +552,36 @@ CCubeMeshIlluminated::~CCubeMeshIlluminated()
 }
 
 //2.25-1
-CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int zStart, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor, void *pContext) : CMeshIlluminated(pd3dDevice)
+//2.27
+//2.27-1
+//2.27-2
+CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int zStart, int nWidth, int nLength, D3DXVECTOR3 d3dxvScale, D3DXCOLOR d3dxColor , void *pContext) : CMeshDetailTexturedIlluminated(pd3dDevice)
 {
-	//격자의 교점(정점)의 개수는 (nWidth * nLength)이다.
 	m_nVertices = nWidth * nLength;
-	//격자는 삼각형 스트립으로 구성한다.
 	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 
 	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
 	D3DXVECTOR3 *pd3dxvNormals = new D3DXVECTOR3[m_nVertices];
+	D3DXVECTOR2 *pd3dxvTexCoords = new D3DXVECTOR2[m_nVertices];
+	D3DXVECTOR2 *pd3dxvDetailTexCoords = new D3DXVECTOR2[m_nVertices];
 
 	m_nWidth = nWidth;
 	m_nLength = nLength;
 	m_d3dxvScale = d3dxvScale;
 
 	CHeightMap *pHeightMap = (CHeightMap *)pContext;
+	int cxHeightMap = pHeightMap->GetHeightMapWidth();
+	int czHeightMap = pHeightMap->GetHeightMapLength();
 	float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
-	///*xStart와 zStart는 격자의 시작 위치(x-좌표와 z-좌표)를 나타낸다.
-	//지형을 격자들의 이차원 배열로 만들 것이기 때문에 지형에서 각 격자의
-	//시작 위치를 나타내는 정보가 필요하다. <그림 18>은 격자의 교점(정점)을
-	//나열하는 순서를 보여준다.*/
-
 	for (int i = 0, z = zStart; z < (zStart + nLength); z++)
 	{
 		for (int x = xStart; x < (xStart + nWidth); x++, i++)
 		{
-			//정점의 높이와 색상을 높이 맵으로부터 구한다.
 			fHeight = OnGetHeight(x, z, pContext);
 			m_pd3dxvPositions[i] = D3DXVECTOR3((x*m_d3dxvScale.x), fHeight, (z*m_d3dxvScale.z));
 			pd3dxvNormals[i] = pHeightMap->GetHeightMapNormal(x, z);
+			pd3dxvTexCoords[i] = D3DXVECTOR2(float(x) / float(cxHeightMap - 1), float(czHeightMap - 1 - z) / float(czHeightMap - 1));
+			pd3dxvDetailTexCoords[i] = D3DXVECTOR2(float(x) / float(m_d3dxvScale.x*0.125f), float(z) / float(m_d3dxvScale.z*0.125f));
 			if (fHeight < fMinHeight) fMinHeight = fHeight;
 			if (fHeight > fMaxHeight) fMaxHeight = fHeight;
 		}
@@ -589,7 +590,7 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	D3D11_BUFFER_DESC d3dBufferDesc;
 	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
 	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3)* m_nVertices;
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
 	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	d3dBufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA d3dBufferData;
@@ -597,20 +598,30 @@ CHeightMapGridMesh::CHeightMapGridMesh(ID3D11Device *pd3dDevice, int xStart, int
 	d3dBufferData.pSysMem = m_pd3dxvPositions;
 	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
 
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
 	d3dBufferData.pSysMem = pd3dxvNormals;
 	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dNormalBuffer);
 
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR2) * m_nVertices;
+	d3dBufferData.pSysMem = pd3dxvTexCoords;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dTexCoordBuffer);
+
+	d3dBufferData.pSysMem = pd3dxvDetailTexCoords;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dDetailTexCoordBuffer);
+
 	if (pd3dxvNormals) delete[] pd3dxvNormals;
+	if (pd3dxvTexCoords) delete[] pd3dxvTexCoords;
+	if (pd3dxvDetailTexCoords) delete[] pd3dxvDetailTexCoords;
 
-	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dNormalBuffer };
-	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR3) };
-	UINT pnBufferOffsets[2] = { 0, 0 };
-	AssembleToVertexBuffer(2, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
-
-	//elete[] pd3dxColors;
+	//정점은 위치 벡터, 법선 벡터, 텍스쳐 좌표, 디테일 텍스쳐 좌표를 갖는다.
+	ID3D11Buffer *pd3dBuffers[4] = { m_pd3dPositionBuffer, m_pd3dNormalBuffer, m_pd3dTexCoordBuffer, m_pd3dDetailTexCoordBuffer };
+	UINT pnBufferStrides[4] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR2), sizeof(D3DXVECTOR2) };
+	UINT pnBufferOffsets[4] = { 0, 0, 0, 0 };
+	AssembleToVertexBuffer(4, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
 
 	m_nIndices = ((nWidth * 2)*(nLength - 1)) + ((nLength - 1) - 1);
 	m_pnIndices = new UINT[m_nIndices];
+
 	for (int j = 0, z = 0; z < nLength - 1; z++)
 	{
 		if ((z % 2) == 0)
@@ -705,4 +716,316 @@ D3DXCOLOR CHeightMapGridMesh::OnGetColor(int x, int z, void *pContext)
 	if (fScale < 0.25f) fScale = 0.25f;
 	D3DXCOLOR d3dxColor = fScale * vIncidentLight;
 	return(d3dxColor);
+}
+
+//2.26
+CMeshTextured::CMeshTextured(ID3D11Device *pd3dDevice) : CMesh(pd3dDevice)
+{
+	m_pd3dTexCoordBuffer = NULL;
+}
+
+//2.26
+CMeshTextured::~CMeshTextured()
+{
+	if (m_pd3dTexCoordBuffer) m_pd3dTexCoordBuffer->Release();
+}
+
+//2.26
+CCubeMeshTextured::CCubeMeshTextured(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth) : CMeshTextured(pd3dDevice)
+{
+	m_nVertices = 36;
+	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	float fx = fWidth*0.5f, fy = fHeight*0.5f, fz = fDepth*0.5f;
+
+	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
+	D3DXVECTOR2 pd3dxvTexCoords[36];
+	int i = 0;
+
+	//직육면체의 각 면(삼각형 2개)에 하나의 텍스쳐 이미지 전체가 맵핑되도록 텍스쳐 좌표를 설정한다.
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA d3dBufferData;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pd3dxvPositions;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
+
+	d3dBufferData.pSysMem = pd3dxvTexCoords;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dTexCoordBuffer);
+
+	ID3D11Buffer *pd3dBuffers[2] = { m_pd3dPositionBuffer, m_pd3dTexCoordBuffer };
+	UINT pnBufferStrides[2] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR2) };
+	UINT pnBufferOffsets[2] = { 0, 0 };
+	AssembleToVertexBuffer(2, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
+
+	/*직육면체의 각 면에 텍스쳐를 맵핑하려면 인덱스를 사용할 수 없으므로 인덱스 버퍼는 생성하지 않는다.*/
+
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(-fx, -fy, -fz);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(+fx, +fy, +fz);
+}
+
+//2.26
+CCubeMeshTextured::~CCubeMeshTextured()
+{
+}
+
+//2.27-1
+CMeshDetailTextured::CMeshDetailTextured(ID3D11Device *pd3dDevice) : CMeshTextured(pd3dDevice)
+{
+	m_pd3dDetailTexCoordBuffer = NULL;
+}
+
+//2.27-1
+CMeshDetailTextured::~CMeshDetailTextured()
+{
+	if (m_pd3dDetailTexCoordBuffer) m_pd3dDetailTexCoordBuffer->Release();
+}
+
+//2.27-2
+CMeshTexturedIlluminated::CMeshTexturedIlluminated(ID3D11Device *pd3dDevice) : CMeshIlluminated(pd3dDevice)
+{
+	m_pd3dTexCoordBuffer = NULL;
+}
+
+//2.27-2
+CMeshTexturedIlluminated::~CMeshTexturedIlluminated()
+{
+	if (m_pd3dTexCoordBuffer) m_pd3dTexCoordBuffer->Release();
+}
+
+//2.27-2
+CMeshDetailTexturedIlluminated::CMeshDetailTexturedIlluminated(ID3D11Device *pd3dDevice) : CMeshIlluminated(pd3dDevice)
+{
+	m_pd3dTexCoordBuffer = NULL;
+	m_pd3dDetailTexCoordBuffer = NULL;
+}
+
+//2.27-2
+CMeshDetailTexturedIlluminated::~CMeshDetailTexturedIlluminated()
+{
+	if (m_pd3dTexCoordBuffer) m_pd3dTexCoordBuffer->Release();
+	if (m_pd3dDetailTexCoordBuffer) m_pd3dDetailTexCoordBuffer->Release();
+}
+
+//2.27-2
+CCubeMeshTexturedIlluminated::CCubeMeshTexturedIlluminated(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth) : CMeshTexturedIlluminated(pd3dDevice)
+{
+	m_nVertices = 36;
+	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	float fx = fWidth*0.5f, fy = fHeight*0.5f, fz = fDepth*0.5f;
+
+	m_pd3dxvPositions = new D3DXVECTOR3[m_nVertices];
+	//생략된 부분은 LabProject13-2의 CCubeMeshTextured 클래스의 생성자 부분과 동일하다.
+	D3DXVECTOR2 pd3dxvTexCoords[36];
+	int i = 0;
+
+	//직육면체의 각 면(삼각형 2개)에 하나의 텍스쳐 이미지 전체가 맵핑되도록 텍스쳐 좌표를 설정한다.
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(-fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, +fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 0.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, +fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(1.0f, 1.0f);
+	m_pd3dxvPositions[i] = D3DXVECTOR3(+fx, -fy, -fz);
+	pd3dxvTexCoords[i++] = D3DXVECTOR2(0.0f, 1.0f);
+
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
+	d3dBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	d3dBufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA d3dBufferData;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = m_pd3dxvPositions;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dPositionBuffer);
+
+	//법선 벡터를 생성하기 위한 다음 코드를 추가한다.
+	D3DXVECTOR3 pd3dxvNormals[36];
+	CalculateVertexNormal(pd3dxvNormals);
+
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR3) * m_nVertices;
+	d3dBufferData.pSysMem = pd3dxvNormals;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dNormalBuffer);
+
+	d3dBufferDesc.ByteWidth = sizeof(D3DXVECTOR2) * m_nVertices;
+	d3dBufferData.pSysMem = pd3dxvTexCoords;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &m_pd3dTexCoordBuffer);
+
+	//정점은 위치 벡터, 법선 벡터, 텍스쳐 좌표를 갖는다.
+	ID3D11Buffer *pd3dBuffers[3] = { m_pd3dPositionBuffer, m_pd3dNormalBuffer, m_pd3dTexCoordBuffer };
+	UINT pnBufferStrides[3] = { sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR3), sizeof(D3DXVECTOR2) };
+	UINT pnBufferOffsets[3] = { 0, 0, 0 };
+	AssembleToVertexBuffer(3, pd3dBuffers, pnBufferStrides, pnBufferOffsets);
+
+	m_bcBoundingCube.m_d3dxvMinimum = D3DXVECTOR3(-fx, -fy, -fz);
+	m_bcBoundingCube.m_d3dxvMaximum = D3DXVECTOR3(+fx, +fy, +fz);
+}
+
+//2.27-2
+CCubeMeshTexturedIlluminated::~CCubeMeshTexturedIlluminated()
+{
 }

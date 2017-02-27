@@ -30,6 +30,44 @@ public:
 	MATERIAL m_Material;
 };
 
+//2.26
+//게임 객체는 하나 이상의 텍스쳐를 가질 수 있다. CTexture는 텍스쳐를 관리하기 위한 클래스이다.
+class CTexture
+{
+public:
+	CTexture(int nTextures = 1, int nSamplers = 1, int nTextureStartSlot = 0, int nSamplerStartSlot = 0);
+	virtual ~CTexture();
+
+private:
+	int m_nReferences;
+
+public:
+	void AddRef() { m_nReferences++; }
+	void Release() { if (--m_nReferences <= 0) delete this; }
+
+private:
+	//텍스쳐 리소스의 개수이다.
+	int m_nTextures;
+	ID3D11ShaderResourceView **m_ppd3dsrvTextures;
+	//텍스쳐 리소스를 연결할 시작 슬롯이다.
+	int m_nTextureStartSlot;
+	//샘플러 상태 객체의 개수이다.
+	int m_nSamplers;
+	ID3D11SamplerState **m_ppd3dSamplerStates;
+	//샘플러 상태 객체를 연결할 시작 슬롯이다.
+	int m_nSamplerStartSlot;
+
+public:
+	void SetTexture(int nIndex, ID3D11ShaderResourceView *pd3dsrvTexture);
+	void SetSampler(int nIndex, ID3D11SamplerState *pd3dSamplerState);
+	//텍스쳐 리소스와 샘플러 상태 객체에 대한 쉐이더 변수를 변경한다.
+	void UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext);
+	//텍스쳐 리소스에 대한 쉐이더 변수를 변경한다.
+	void UpdateTextureShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, int nIndex = 0, int nSlot = 0);
+	//샘플러 상태 객체에 대한 쉐이더 변수를 변경한다.
+	void UpdateSamplerShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, int nIndex = 0, int nSlot = 0);
+};
+
 class CGameObject
 {
 private:
@@ -92,6 +130,12 @@ public:
 	//게임 객체는 하나의 재질을 가질 수 있다.
 	CMaterial *m_pMaterial;
 	void SetMaterial(CMaterial *pMaterial);
+
+//2.26
+public:
+	//게임 객체는 텍스쳐 가질 수 있다.
+	CTexture *m_pTexture;
+	void SetTexture(CTexture *pTexture);
 };
 
 class CRotatingObject : public CGameObject
@@ -131,6 +175,7 @@ public:
 	D3DXVECTOR3 GetScale() { return(m_d3dxvScale); }
 	BYTE *GetHeightMapImage() { return(m_pHeightMapImage); }
 	int GetHeightMapWidth() { return(m_nWidth); }
+	int GetHeightMapLength() { return(m_nLength); }
 };
 
 class CHeightMapTerrain : public CGameObject
@@ -159,3 +204,4 @@ public:
 	float GetLength() { return(m_nLength * m_d3dxvScale.z);}
 	float GetPeakHeight() {	return(m_bcMeshBoundingCube.m_d3dxvMaximum.y);}
 };
+

@@ -128,8 +128,6 @@ public:
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext);
 };
 
-
-
 //2.25
 class CMeshIlluminated : public CMesh
 {
@@ -159,8 +157,74 @@ public:
 	virtual ~CCubeMeshIlluminated();
 };
 
+//2.27-2
+class CMeshTexturedIlluminated : public CMeshIlluminated
+{
+public:
+	CMeshTexturedIlluminated(ID3D11Device *pd3dDevice);
+	virtual ~CMeshTexturedIlluminated();
+
+protected:
+	ID3D11Buffer *m_pd3dTexCoordBuffer;
+};
+
+//2.27-2
+class CMeshDetailTexturedIlluminated : public CMeshIlluminated
+{
+public:
+	CMeshDetailTexturedIlluminated(ID3D11Device *pd3dDevice);
+	virtual ~CMeshDetailTexturedIlluminated();
+
+protected:
+	ID3D11Buffer *m_pd3dTexCoordBuffer;
+	ID3D11Buffer *m_pd3dDetailTexCoordBuffer;
+};
+
+//2.27-2
+class CCubeMeshTexturedIlluminated : public CMeshTexturedIlluminated
+{
+public:
+	CCubeMeshTexturedIlluminated(ID3D11Device *pd3dDevice, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	virtual ~CCubeMeshTexturedIlluminated();
+};
+
+//2.26
+class CMeshTextured : public CMesh
+{
+public:
+	CMeshTextured(ID3D11Device *pd3dDevice);
+	virtual ~CMeshTextured();
+
+protected:
+	//텍스쳐 매핑을 하기 위하여 텍스쳐 좌표가 필요하다.
+	ID3D11Buffer *m_pd3dTexCoordBuffer;
+};
+
+//2.26
+/*텍스쳐 매핑을 사용하여 색상을 결정하기 위하여 정점이 텍스쳐 좌표를 갖는 직육면체 메쉬 클래스이다.*/
+class CCubeMeshTextured : public CMeshTextured
+{
+public:
+	CCubeMeshTextured(ID3D11Device *pd3dDevice, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	virtual ~CCubeMeshTextured();
+};
+
+//2.27-1
+class CMeshDetailTextured : public CMeshTextured
+{
+public:
+	CMeshDetailTextured(ID3D11Device *pd3dDevice);
+	virtual ~CMeshDetailTextured();
+
+protected:
+	ID3D11Buffer *m_pd3dDetailTexCoordBuffer;
+};
+
 //2.25-1 CMesh에서 CMeshIlluminated로 바꿈
-class CHeightMapGridMesh : public CMeshIlluminated
+//2.27 CMeshIlluminated에서 CMeshTextured로 바꿈
+//2.27-1 CMeshTextured에서 CMeshDetailTextured로 변경한다.
+//2.27-2 CMeshDetailTextured에서 CMeshDetailTexturedIlluminated로 변경한다.
+class CHeightMapGridMesh : public CMeshDetailTexturedIlluminated
 {
 	//격자의 크기(가로: x방향, 세로: z-방향) 이다.
 	int m_nWidth;

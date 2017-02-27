@@ -4,8 +4,6 @@
 //월드 변환 행렬을 위한 상수 버퍼는 쉐이더 객체의 정적(static) 데이터 멤버이다.
 ID3D11Buffer *CShader::m_pd3dcbWorldMatrix = NULL;
 
-
-
 CShader::CShader()
 {
 	m_ppObjects = NULL;
@@ -93,7 +91,6 @@ void CShader::CreatePixelShaderFromFile(ID3D11Device *pd3dDevice, WCHAR *pszFile
 
 void CShader::CreateShader(ID3D11Device *pd3dDevice)
 {
-
 	D3D11_INPUT_ELEMENT_DESC d3dInputLayout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -203,11 +200,49 @@ CPlayerShader::~CPlayerShader()
 
 void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
 {
-	CShader::CreateShader(pd3dDevice);
+	//비정적멤버 참조는 특정개체에 상대적이어야합니다는 CPlayerShader가 해당 클래스를 상속되지않았을때 오류로 뜬다.
+
+	//보통
+	//CShader::CreateShader(pd3dDevice);
+
+	//2.25-1
+	//조명만 썻을때
+	//CIlluminatedShader::CreateShader(pd3dDevice);
+
+	//2.26
+	//텍스처만 썻을때
+	CTexturedShader::CreateShader(pd3dDevice);
 }
 
 void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 {
+	//2.26
+	//텍스쳐 맵핑에 사용할 샘플러 상태 객체를 생성한다.
+	ID3D11SamplerState *pd3dSamplerState = NULL;
+	D3D11_SAMPLER_DESC d3dSamplerDesc;
+	ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+	d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	d3dSamplerDesc.MinLOD = 0;
+	d3dSamplerDesc.MaxLOD = 0;
+	pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
+
+	//2.26
+	//텍스쳐 리소스를 생성한다.
+	ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+	CTexture *pStoneTexture = new CTexture(1, 1, 0, 0);
+	D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Assets/Image/Miscellaneous/Stone01.jpg"), NULL, NULL, &pd3dsrvTexture, NULL);
+	pStoneTexture->SetTexture(0, pd3dsrvTexture);
+	pStoneTexture->SetSampler(0, pd3dSamplerState);
+	pd3dsrvTexture->Release();
+
+	//2.26
+	m_pTexture = pStoneTexture;
+	if (pStoneTexture) pStoneTexture->AddRef();
+
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
@@ -222,12 +257,14 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 		pRedMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
 		pRedMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
 
-		CCubeMeshIlluminated *pMesh = new CCubeMeshIlluminated(pd3dDevice, 10.0f, 10.0f, 10.0f);
+		CCubeMeshTextured *pMesh = new CCubeMeshTextured(pd3dDevice, 10.0f, 10.0f, 10.0f);
 		CTerrainPlayer *pPlayer = new CTerrainPlayer(1);
 		pPlayer->SetMesh(pMesh);
 		pPlayer->CreateShaderVariables(pd3dDevice);
 		pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
 		pPlayer->SetMaterial(pRedMaterial);
+		pPlayer->SetTexture(m_pTexture);
+		
 
 		CCamera *pCamera = pPlayer->GetCamera();
 		pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
@@ -285,22 +322,144 @@ void CTerrainShader::BuildObjects(ID3D11Device *pd3dDevice)
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
-	//2.25-1
-	//지형을 위한 재질을 생성한다. 재질은 녹색을 많이 반사한다.
-	CMaterial *pTerrainMaterial = new CMaterial();
-	pTerrainMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.6f, 0.9f, 0.2f, 1.0f);
-	pTerrainMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 0.2f, 0.0f, 1.0f);
-	pTerrainMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
-	pTerrainMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+	//{
+	//	//2.25-1
+	//	//지형을 위한 재질을 생성한다. 재질은 녹색을 많이 반사한다.
+	//	CMaterial *pTerrainMaterial = new CMaterial();
+	//	pTerrainMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.6f, 0.9f, 0.2f, 1.0f);
+	//	pTerrainMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 0.2f, 0.0f, 1.0f);
+	//	pTerrainMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+	//	pTerrainMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
 
-	D3DXVECTOR3 d3dxvScale(8.0f, 3.0f, 8.0f);
-	D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
+	//	D3DXVECTOR3 d3dxvScale(8.0f, 3.0f, 8.0f);
+	//	D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
 
-	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
-	//m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/HeightMap.raw"), d3dxvScale, d3dxColor);
+	//	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
+	//	//m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/HeightMap.raw"), d3dxvScale, d3dxColor);
 
-	//2.25-1
-	m_ppObjects[0]->SetMaterial(pTerrainMaterial);
+	//	//2.25-1
+	//	m_ppObjects[0]->SetMaterial(pTerrainMaterial);
+	//}
+
+	//2.27
+	{
+		ID3D11SamplerState *pd3dSamplerState = NULL;
+		D3D11_SAMPLER_DESC d3dSamplerDesc;
+		ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+		d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+		d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		d3dSamplerDesc.MinLOD = 0;
+		d3dSamplerDesc.MaxLOD = 0;
+
+		pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
+
+		CTexture *pTerrainTexture = new CTexture(1, 1, 0, 0);
+		ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/Terrain/ground1.jpg"), NULL, NULL, &pd3dsrvTexture, NULL);
+		pTerrainTexture->SetTexture(0, pd3dsrvTexture);
+		pTerrainTexture->SetSampler(0, pd3dSamplerState);
+		pd3dsrvTexture->Release();
+		pd3dSamplerState->Release();
+
+		D3DXVECTOR3 d3dxvScale(8.0f, 2.0f, 8.0f);
+		D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
+		m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
+		m_ppObjects[0]->SetTexture(pTerrainTexture);
+	}
+
+	////2.27-1
+	//{
+	//	//지형은 텍스쳐가 2개이므로 2개의 샘플러 객체가 필요하다. 
+	//	ID3D11SamplerState *pd3dBaseSamplerState = NULL;
+	//	D3D11_SAMPLER_DESC d3dSamplerDesc;
+	//	ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+	//	d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//	d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	//	d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	//	d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	//	d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	//	d3dSamplerDesc.MinLOD = 0;
+	//	d3dSamplerDesc.MaxLOD = 0;
+	//	pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dBaseSamplerState);
+
+	//	ID3D11SamplerState *pd3dDetailSamplerState = NULL;
+	//	d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//	d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//	d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//	pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dDetailSamplerState);
+
+	//	CTexture *pTerrainTexture = new CTexture(2, 2, 0, 0);
+	//	ID3D11ShaderResourceView *pd3dsrvBaseTexture = NULL;
+	//	D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Assets/Image/Terrain/Base_Texture.jpg"), NULL, NULL, &pd3dsrvBaseTexture, NULL);
+	//	pTerrainTexture->SetTexture(0, pd3dsrvBaseTexture);
+	//	pTerrainTexture->SetSampler(0, pd3dBaseSamplerState);
+	//	pd3dsrvBaseTexture->Release();
+	//	pd3dBaseSamplerState->Release();
+
+	//	ID3D11ShaderResourceView *pd3dsrvDetailTexture = NULL;
+	//	D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Assets/Image/Terrain/Detail_Texture_7.jpg"), NULL, NULL, &pd3dsrvDetailTexture, NULL);
+	//	pTerrainTexture->SetTexture(1, pd3dsrvDetailTexture);
+	//	pTerrainTexture->SetSampler(1, pd3dDetailSamplerState);
+	//	pd3dsrvDetailTexture->Release();
+	//	pd3dDetailSamplerState->Release();
+
+	//	D3DXVECTOR3 d3dxvScale(8.0f, 2.0f, 8.0f);
+	//	D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
+	//	m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
+	//	m_ppObjects[0]->SetTexture(pTerrainTexture);
+	//}
+
+	//2.27-2
+	{
+		//지형은 텍스쳐가 2개이므로 2개의 샘플러 객체가 필요하다. 
+		ID3D11SamplerState *pd3dBaseSamplerState = NULL;
+		D3D11_SAMPLER_DESC d3dSamplerDesc;
+		ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+		d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+		d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		d3dSamplerDesc.MinLOD = 0;
+		d3dSamplerDesc.MaxLOD = 0;
+		pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dBaseSamplerState);
+
+		ID3D11SamplerState *pd3dDetailSamplerState = NULL;
+		d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dDetailSamplerState);
+
+		CTexture *pTerrainTexture = new CTexture(2, 2, 0, 0);
+		ID3D11ShaderResourceView *pd3dsrvBaseTexture = NULL;
+		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Assets/Image/Terrain/Base_Texture.jpg"), NULL, NULL, &pd3dsrvBaseTexture, NULL);
+		pTerrainTexture->SetTexture(0, pd3dsrvBaseTexture);
+		pTerrainTexture->SetSampler(0, pd3dBaseSamplerState);
+		pd3dsrvBaseTexture->Release();
+		pd3dBaseSamplerState->Release();
+
+		ID3D11ShaderResourceView *pd3dsrvDetailTexture = NULL;
+		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Assets/Image/Terrain/Detail_Texture_7.jpg"), NULL, NULL, &pd3dsrvDetailTexture, NULL);
+		pTerrainTexture->SetTexture(1, pd3dsrvDetailTexture);
+		pTerrainTexture->SetSampler(1, pd3dDetailSamplerState);
+		pd3dsrvDetailTexture->Release();
+		pd3dDetailSamplerState->Release();
+
+		CMaterial *pTerrainMaterial = new CMaterial();
+		pTerrainMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.8f, 1.0f, 0.2f, 1.0f);
+		pTerrainMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.1f, 0.3f, 0.1f, 1.0f);
+		pTerrainMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+		pTerrainMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+
+		D3DXVECTOR3 d3dxvScale(8.0f, 2.0f, 8.0f);
+		D3DXCOLOR d3dxColor(0.0f, 0.2f, 0.1f, 0.0f);
+		m_ppObjects[0] = new CHeightMapTerrain(pd3dDevice, 257, 257, 257, 257, _T("../Data/Terrain/BesideYouHeightMap5.raw"), d3dxvScale, d3dxColor);
+		m_ppObjects[0]->SetTexture(pTerrainTexture);
+		m_ppObjects[0]->SetMaterial(pTerrainMaterial);
+	}
 
 	//터레인의 초기위치
 	//m_ppObjects[0]->SetPosition(-1250, 0, -1250);
@@ -365,4 +524,100 @@ void CIlluminatedShader::UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceCon
 	memcpy(pcbMaterial, pMaterial, sizeof(MATERIAL));
 	pd3dDeviceContext->Unmap(m_pd3dcbMaterial, 0);
 	pd3dDeviceContext->PSSetConstantBuffers(PS_SLOT_MATERIAL, 1, &m_pd3dcbMaterial);
+}
+
+//2.26
+CTexturedShader::CTexturedShader()
+{
+}
+
+//2.26
+CTexturedShader::~CTexturedShader()
+{
+}
+
+//2.26
+void CTexturedShader::CreateShader(ID3D11Device *pd3dDevice)
+{
+	D3D11_INPUT_ELEMENT_DESC d3dInputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	UINT nElements = ARRAYSIZE(d3dInputElements);
+	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSTexturedColor", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
+	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSTexturedColor", "ps_5_0", &m_pd3dPixelShader);
+}
+
+//2.27-1
+CDetailTexturedShader::CDetailTexturedShader()
+{
+}
+
+//2.27-1
+CDetailTexturedShader::~CDetailTexturedShader()
+{
+}
+
+//2.27-1
+void CDetailTexturedShader::CreateShader(ID3D11Device *pd3dDevice)
+{
+	D3D11_INPUT_ELEMENT_DESC d3dInputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	UINT nElements = ARRAYSIZE(d3dInputElements);
+	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSDetailTexturedColor", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
+	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSDetailTexturedColor", "ps_5_0", &m_pd3dPixelShader);
+}
+
+//2.27-2
+CTexturedIlluminatedShader::CTexturedIlluminatedShader()
+{
+}
+
+//2.27-2
+CTexturedIlluminatedShader::~CTexturedIlluminatedShader()
+{
+}
+
+//2.27-2
+void CTexturedIlluminatedShader::CreateShader(ID3D11Device *pd3dDevice)
+{
+	D3D11_INPUT_ELEMENT_DESC d3dInputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	UINT nElements = ARRAYSIZE(d3dInputElements);
+	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSTexturedLightingColor", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
+	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSTexturedLightingColor", "ps_5_0", &m_pd3dPixelShader);
+}
+
+//2.27-2
+CDetailTexturedIlluminatedShader::CDetailTexturedIlluminatedShader()
+{
+}
+
+//2.27-2
+CDetailTexturedIlluminatedShader::~CDetailTexturedIlluminatedShader()
+{
+}
+
+//2.27-2
+void CDetailTexturedIlluminatedShader::CreateShader(ID3D11Device *pd3dDevice)
+{
+	D3D11_INPUT_ELEMENT_DESC d3dInputElements[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	UINT nElements = ARRAYSIZE(d3dInputElements);
+	CreateVertexShaderFromFile(pd3dDevice, L"Effect.fx", "VSDetailTexturedLightingColor", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
+	CreatePixelShaderFromFile(pd3dDevice, L"Effect.fx", "PSDetailTexturedLightingColor", "ps_5_0", &m_pd3dPixelShader);
 }

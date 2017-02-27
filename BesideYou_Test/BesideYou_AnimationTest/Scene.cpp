@@ -53,7 +53,7 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCh
 	pd3dSamplerState->Release();
 
 	//k 쉐이더 1개 추가
-	m_nShaders = 1 + 1 + 3 + 1;
+	m_nShaders = 1 + 1 + 1;
 	m_ppShaders = new CShader*[m_nShaders];
 	
 	m_ppShaders[0] = new CSkyBoxShader();
@@ -87,42 +87,42 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCh
 	CTexturedIlluminatedShader * pTestShader = new CTexturedIlluminatedShader();
 	pTestShader->CreateShader(pd3dDevice);
 	pTestShader->BuildObjects(pd3dDevice, vtCharacterData);
-	m_ppShaders[5] = pTestShader;
+	m_ppShaders[2] = pTestShader;
 
-	//133
-	//재질을 생성한다.
-	CMaterial *pRedMaterial = new CMaterial();
-	pRedMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
-	pRedMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
-	pRedMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
-	pRedMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+	////133
+	////재질을 생성한다.
+	//CMaterial *pRedMaterial = new CMaterial();
+	//pRedMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+	//pRedMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+	//pRedMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+	//pRedMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
 
-	CMaterial *pGreenMaterial = new CMaterial();
-	pGreenMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pGreenMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pGreenMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 3.0f);
-	pGreenMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+	//CMaterial *pGreenMaterial = new CMaterial();
+	//pGreenMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
+	//pGreenMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
+	//pGreenMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 3.0f);
+	//pGreenMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
 
-	CMaterial *pBlueMaterial = new CMaterial();
-	pBlueMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f);
-	pBlueMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f);
-	pBlueMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 4.0f);
-	pBlueMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.1f, 0.1f, 0.1f, 1.0f);
+	//CMaterial *pBlueMaterial = new CMaterial();
+	//pBlueMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f);
+	//pBlueMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f);
+	//pBlueMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 4.0f);
+	//pBlueMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.1f, 0.1f, 0.1f, 1.0f);
 
-	CInstancingShader *pStoneInstancedObjectsShader = new CInstancingShader();
-	pStoneInstancedObjectsShader->CreateShader(pd3dDevice);
-	pStoneInstancedObjectsShader->BuildObjects(pd3dDevice, GetTerrain(), pRedMaterial, pStoneTexture, 0);
-	m_ppShaders[2] = pStoneInstancedObjectsShader;
+	//CInstancingShader *pStoneInstancedObjectsShader = new CInstancingShader();
+	//pStoneInstancedObjectsShader->CreateShader(pd3dDevice);
+	//pStoneInstancedObjectsShader->BuildObjects(pd3dDevice, GetTerrain(), pRedMaterial, pStoneTexture, 0);
+	//m_ppShaders[2] = pStoneInstancedObjectsShader;
 
-	CInstancingShader *pBrickInstancedObjectsShader = new CInstancingShader();
-	pBrickInstancedObjectsShader->CreateShader(pd3dDevice);
-	pBrickInstancedObjectsShader->BuildObjects(pd3dDevice, GetTerrain(), pGreenMaterial, pBrickTexture, 1);
-	m_ppShaders[3] = pBrickInstancedObjectsShader;
+	//CInstancingShader *pBrickInstancedObjectsShader = new CInstancingShader();
+	//pBrickInstancedObjectsShader->CreateShader(pd3dDevice);
+	//pBrickInstancedObjectsShader->BuildObjects(pd3dDevice, GetTerrain(), pGreenMaterial, pBrickTexture, 1);
+	//m_ppShaders[3] = pBrickInstancedObjectsShader;
 
-	CInstancingShader *pWoodInstancedObjectsShader = new CInstancingShader();
-	pWoodInstancedObjectsShader->CreateShader(pd3dDevice);
-	pWoodInstancedObjectsShader->BuildObjects(pd3dDevice, GetTerrain(), pBlueMaterial, pWoodTexture, 2);
-	m_ppShaders[4] = pWoodInstancedObjectsShader;
+	//CInstancingShader *pWoodInstancedObjectsShader = new CInstancingShader();
+	//pWoodInstancedObjectsShader->CreateShader(pd3dDevice);
+	//pWoodInstancedObjectsShader->BuildObjects(pd3dDevice, GetTerrain(), pBlueMaterial, pWoodTexture, 2);
+	//m_ppShaders[4] = pWoodInstancedObjectsShader;
 
 	CreateShaderVariables(pd3dDevice);
 }
