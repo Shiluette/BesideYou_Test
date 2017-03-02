@@ -1,6 +1,17 @@
 #include "stdafx.h"
 //#include "GameFramework.h"
 
+//3.2
+CTexture* CreateTexture(ID3D11Device* pd3dDevice, WCHAR* ptrstring, ID3D11ShaderResourceView** pd3dsrvTexture, ID3D11SamplerState** pd3dSamplerState, int nTextureStartSlot, int nSamplerStartSlot)
+{
+	CTexture* pTexture = new CTexture(1, 1, nTextureStartSlot, nSamplerStartSlot);
+	D3DX11CreateShaderResourceViewFromFile(pd3dDevice, ptrstring, NULL, NULL, pd3dsrvTexture, NULL);
+	pTexture->SetTexture(0, *pd3dsrvTexture);
+	pTexture->SetSampler(0, *pd3dSamplerState);
+	(*pd3dsrvTexture)->Release();
+	return pTexture;
+}
+
 CGameFramework::CGameFramework()
 {
 	m_pd3dDevice = NULL;
@@ -322,12 +333,18 @@ void CGameFramework::BuildObjects()
 	//2.25
 	CIlluminatedShader::CreateShaderVariables(m_pd3dDevice);
 
+	//3.2
+	FBXModelDataLoad();
+
 	m_pScene = new CScene();
 	m_pScene->BuildObjects(m_pd3dDevice);
 
 	m_pPlayerShader = new CPlayerShader();
 	m_pPlayerShader->CreateShader(m_pd3dDevice);
-	m_pPlayerShader->BuildObjects(m_pd3dDevice);
+	//m_pPlayerShader->BuildObjects(m_pd3dDevice);
+	//3.2
+	m_pPlayerShader->BuildObjects(m_pd3dDevice, m_vtCharacterDatas);
+
 	m_pPlayer = m_pPlayerShader->GetPlayer();
 
 	CHeightMapTerrain * pTerrain = m_pScene->GetTerrain();
@@ -598,4 +615,34 @@ void CGameFramework::FrameAdvance()
 	*/
 	m_GameTimer.GetFrameRate(m_pszBuffer + 12, 37);
 	::SetWindowText(m_hWnd, m_pszBuffer);
+}
+
+//3.2
+void CGameFramework::FBXModelDataLoad(void)
+{
+
+	ID3D11SamplerState *pd3dSamplerState = NULL;
+	D3D11_SAMPLER_DESC d3dSamplerDesc;
+	ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+	d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	d3dSamplerDesc.MinLOD = 0;
+	d3dSamplerDesc.MaxLOD = 0;
+	m_pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
+
+	ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+	CTexture *TestTexture = CreateTexture(m_pd3dDevice, _T("../Data/Vehice_Ambulance.png"), &pd3dsrvTexture, &pd3dSamplerState, 0, 0);
+	pd3dSamplerState->Release();
+
+	//CMesh* pTestMesh = new CFBXMesh(m_pd3dDevice, "../Data/ambo_mesh.data", 0.01);
+
+	CMesh * pTestMesh = new CAssetMesh(m_pd3dDevice, "../Data/ambo_mesh.data");
+	
+	m_vtCharacterDatas.push_back(new ModelContainer{ "TestModel", pTestMesh, TestTexture });
+
+	for (auto& iter : m_vtCharacterDatas)
+		iter->AddRef();
 }

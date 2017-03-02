@@ -148,6 +148,7 @@
     <ClInclude Include="BesideYou_Test.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ClientHeader.h" />
+    <ClInclude Include="FBXMesh.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="IlluminatedShader.h" />
     <ClInclude Include="Mesh.h" />
@@ -164,6 +165,7 @@
   <ItemGroup>
     <ClCompile Include="BesideYou_Test.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="FBXMesh.cpp" />
     <ClCompile Include="GameFramework.cpp" />
     <ClCompile Include="IlluminatedShader.cpp" />
     <ClCompile Include="Mesh.cpp" />

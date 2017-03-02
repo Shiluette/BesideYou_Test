@@ -101,6 +101,9 @@ public:
 	//메쉬의 정점 버퍼들을 배열로 조립한다. 
 	void AssembleToVertexBuffer(int nBuffers = 0, ID3D11Buffer **m_pd3dBuffers = NULL, UINT *pnBufferStrides = NULL, UINT *pnBufferOffsets = NULL);
 
+	//3.2
+	ID3D11Buffer *CreateBuffer(ID3D11Device *pd3dDevice, UINT nStride, int nElements, void *pBufferData, UINT nBindFlags, D3D11_USAGE d3dUsage, UINT nCPUAccessFlags);
+
 //절두체컬링
 //2.23-1
 protected:

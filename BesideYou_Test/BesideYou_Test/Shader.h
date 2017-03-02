@@ -90,8 +90,6 @@ public:
 	static void UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, MATERIAL *pMaterial);
 };
 
-
-
 //2.26
 class CTexturedShader : public CShader
 {
@@ -110,29 +108,6 @@ public:
 	virtual ~CDetailTexturedShader();
 
 	virtual void CreateShader(ID3D11Device *pd3dDevice);
-};
-
-//2.25
-//플레이어를 렌더링하기 위한 쉐이더 클래스이다.
-class CPlayerShader : public CTexturedShader
-{
-	//2.25
-private:
-	CMaterial *m_pMaterial;
-
-	//2.26
-private:
-	CTexture *m_pTexture;
-
-public:
-	CPlayerShader();
-	virtual ~CPlayerShader();
-
-	virtual void CreateShader(ID3D11Device *pd3dDevice);
-	virtual void BuildObjects(ID3D11Device *pd3dDevice);
-	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera = NULL);
-
-	CPlayer *GetPlayer(int nIndex = 0) { return((CPlayer *)m_ppObjects[nIndex]); }
 };
 
 //2.27-2
@@ -169,4 +144,34 @@ public:
 
 	//2.23
 	CHeightMapTerrain * GetTerrain();
+};
+
+//2.25
+//플레이어를 렌더링하기 위한 쉐이더 클래스이다.
+//3.2
+//플레이어는 이제 텍스쳐와 조명의 영향을 둘다 받아야하기때문에 CTexturedIlluminattedShader를 상속받는다.
+class CPlayerShader : public CTexturedIlluminatedShader
+{
+	//2.25
+private:
+	CMaterial *m_pMaterial;
+
+	//2.26
+private:
+	CTexture *m_pTexture;
+
+public:
+	CPlayerShader();
+	virtual ~CPlayerShader();
+
+	virtual void CreateShader(ID3D11Device *pd3dDevice);
+	
+	virtual void BuildObjects(ID3D11Device *pd3dDevice);
+
+	//3.2
+	void BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> vtCharacterData);
+
+	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera = NULL);
+
+	CPlayer *GetPlayer(int nIndex = 0) { return((CPlayer *)m_ppObjects[nIndex]); }
 };

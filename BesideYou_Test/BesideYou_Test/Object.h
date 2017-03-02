@@ -205,3 +205,23 @@ public:
 	float GetPeakHeight() {	return(m_bcMeshBoundingCube.m_d3dxvMaximum.y);}
 };
 
+//3.2
+struct ModelContainer
+{
+	string		m_sModelName;
+	CMesh*		m_pModelMesh;
+	CTexture*	m_pModelTexture;
+
+	void AddRef()
+	{
+		if (m_pModelMesh)
+			m_pModelMesh->AddRef();
+		if (m_pModelTexture)
+			m_pModelTexture->AddRef();
+	}
+	void Release()
+	{
+		m_pModelMesh->Release();
+		m_pModelTexture->Release();
+	}
+};

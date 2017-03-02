@@ -69,6 +69,9 @@
     <ClInclude Include="IlluminatedShader.h">
       <Filter>소스 파일\Shader</Filter>
     </ClInclude>
+    <ClInclude Include="FBXMesh.h">
+      <Filter>소스 파일\Mesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -106,6 +109,9 @@
     </ClCompile>
     <ClCompile Include="IlluminatedShader.cpp">
       <Filter>소스 파일\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="FBXMesh.cpp">
+      <Filter>소스 파일\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

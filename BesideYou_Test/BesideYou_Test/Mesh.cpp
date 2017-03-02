@@ -153,6 +153,24 @@ void CMesh::AssembleToVertexBuffer(int nBuffers, ID3D11Buffer **ppd3dBuffers, UI
 	m_pnVertexOffsets = pnNewVertexOffsets;
 }
 
+//3.2
+ID3D11Buffer *CMesh::CreateBuffer(ID3D11Device *pd3dDevice, UINT nStride, int nElements, void *pBufferData, UINT nBindFlags, D3D11_USAGE d3dUsage, UINT nCPUAccessFlags)
+{
+	D3D11_BUFFER_DESC d3dBufferDesc;
+	ZeroMemory(&d3dBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	d3dBufferDesc.Usage = d3dUsage;
+	d3dBufferDesc.ByteWidth = nStride * nElements;
+	d3dBufferDesc.BindFlags = nBindFlags;
+	d3dBufferDesc.CPUAccessFlags = nCPUAccessFlags;
+	D3D11_SUBRESOURCE_DATA d3dBufferData;
+	ZeroMemory(&d3dBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+	d3dBufferData.pSysMem = pBufferData;
+
+	ID3D11Buffer *pd3dBuffer = NULL;
+	pd3dDevice->CreateBuffer(&d3dBufferDesc, &d3dBufferData, &pd3dBuffer);
+	return(pd3dBuffer);
+}
+
 CCubeMesh::CCubeMesh(ID3D11Device *pd3dDevice, float fWidth, float fHeight, float fDepth, D3DXCOLOR d3dxColor) : CMesh(pd3dDevice)
 {
 	m_nVertices = 8;

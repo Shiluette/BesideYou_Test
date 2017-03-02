@@ -11,6 +11,13 @@
 #include <memory.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <vector>
+
+//fbx, 애니메이션
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 #include <d3d11.h>
@@ -36,6 +43,7 @@
 
 #include "Mesh.h"
 #include "MeshIlluminated.h"
+#include "FBXMesh.h"
 
 #include "Camera.h"
 #include "Object.h"

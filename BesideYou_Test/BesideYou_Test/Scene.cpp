@@ -51,7 +51,7 @@ void CScene::CreateShaderVariables(ID3D11Device *pd3dDevice)
 	m_pLights->m_pLights[2].m_d3dxcDiffuse = D3DXCOLOR(0.4f, 0.4f, 0.4f, 1.0f);
 	m_pLights->m_pLights[2].m_d3dxcSpecular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f);
 	m_pLights->m_pLights[2].m_d3dxvDirection = D3DXVECTOR3(0.0f, -1.0f, 0.0f);
-	m_pLights->m_pLights[3].m_bEnable = 1.0f;
+	m_pLights->m_pLights[3].m_bEnable = 0.0f;
 	m_pLights->m_pLights[3].m_nType = SPOT_LIGHT;
 	m_pLights->m_pLights[3].m_fRange = 60.0f;
 	m_pLights->m_pLights[3].m_d3dxcAmbient = D3DXCOLOR(0.1f, 0.0f, 0.0f, 1.0f);

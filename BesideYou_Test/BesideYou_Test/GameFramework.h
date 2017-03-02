@@ -67,6 +67,9 @@ private:
 
 	//¸ÖÆ¼»ùÇÃ¸µ
 	UINT                     m_n4xMSAAQualities;
+
+	//3.2
+	vector<ModelContainer*> m_vtCharacterDatas;
 public:
 	CGameFramework();
 	~CGameFramework();
@@ -102,4 +105,7 @@ public:
 	POINT	m_ptOldCursorPos;
 
 	CPlayerShader *m_pPlayerShader;
+
+	//3.2
+	void FBXModelDataLoad(void);
 };

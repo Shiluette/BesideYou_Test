@@ -211,7 +211,11 @@ void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
 
 	//2.26
 	//텍스처만 썻을때
-	CTexturedShader::CreateShader(pd3dDevice);
+	//CTexturedShader::CreateShader(pd3dDevice);
+
+	//3.2 
+	//텍스쳐와 조명을 같이 썼을때
+	CTexturedIlluminatedShader::CreateShader(pd3dDevice);
 }
 
 void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
@@ -250,7 +254,6 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 	pd3dDevice->GetImmediateContext(&pd3dDeviceContext);
 
 	{
-		//2.25
 		CMaterial *pRedMaterial = new CMaterial();
 		pRedMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
 		pRedMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
@@ -265,7 +268,6 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 		pPlayer->SetMaterial(pRedMaterial);
 		pPlayer->SetTexture(m_pTexture);
 		
-
 		CCamera *pCamera = pPlayer->GetCamera();
 		pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
 		pCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
@@ -297,6 +299,32 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 	//}
 
 	if (pd3dDeviceContext) pd3dDeviceContext->Release();
+}
+
+//3.2
+void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer*> modeldata)
+{
+	m_nObjects = 1;
+	m_ppObjects = new CGameObject*[m_nObjects];
+
+	m_pTexture = (*modeldata.begin())->m_pModelTexture;
+	if ((*modeldata.begin())->m_pModelTexture) (*modeldata.begin())->m_pModelTexture->AddRef();
+
+	CMaterial *pTestMaterial = new CMaterial();
+	pTestMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pTestMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+	CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
+	pPlayer->SetMesh((*modeldata.begin())->m_pModelMesh);
+	pPlayer->SetTexture((*modeldata.begin())->m_pModelTexture);
+	pPlayer->SetMaterial(pTestMaterial);
+	pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
+
+	//pTestModel->SetPosition(1000, 800, 1000);
+	
+	m_ppObjects[0] = pPlayer;
 }
 
 void CPlayerShader::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)

@@ -1,14 +1,1 @@
-﻿  Mesh.cpp
-c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1327): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
-  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1327): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
-c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1331): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
-  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1331): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
-c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1335): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
-  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1335): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
-c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1339): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
-  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1339): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
-c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1343): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
-  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1343): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
-c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1347): warning C4474: 'swprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
-  c:\users\dydrn\onedrive\문서\visual studio 2015\projects\besideyou\besideyou_test\besideyou_test\besideyou_animationtest\mesh.cpp(1347): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
-  BesideYou_AnimationTest.vcxproj -> C:\Users\dydrn\OneDrive\문서\Visual Studio 2015\Projects\BesideYou\BesideYou_Test\BesideYou_Test\x64\Debug\BesideYou_AnimationTest.exe
+﻿  BesideYou_AnimationTest.vcxproj -> C:\Users\dydrn\OneDrive\문서\Visual Studio 2015\Projects\BesideYou\BesideYou_Test\BesideYou_Test\x64\Debug\BesideYou_AnimationTest.exe
