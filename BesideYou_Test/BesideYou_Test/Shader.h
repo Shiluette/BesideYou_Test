@@ -1,6 +1,5 @@
 #pragma once
 
-#include "IlluminatedShader.h"
 //#include "Object.h"
 //#include "Camera.h"
 //#include "Player.h"
@@ -48,6 +47,15 @@ public:
 	{
 		return m_ppObjects[object]->GetPosition();
 	}
+
+	//3.3
+	virtual void AddObject(CGameObject *pGameObject);
+
+	//3.3
+	CGameObject* GetGameObject(int nIndex) { 
+		return m_ppObjects[nIndex]; 
+	}
+
 protected:
 	ID3D11VertexShader *m_pd3dVertexShader;
 	ID3D11InputLayout *m_pd3dVertexLayout;
@@ -56,6 +64,9 @@ protected:
 	//쉐이더 객체가 게임 객체들의 리스트를 가진다.
 	CGameObject **m_ppObjects;
 	int m_nObjects;
+
+	//3.3 이거뭐지?
+	int m_nIndexToAdd;
 
 	//월드 변환 행렬을 위한 상수 버퍼는 하나만 있어도 되므로 정적 멤버로 선언한다.
 	static ID3D11Buffer *m_pd3dcbWorldMatrix;

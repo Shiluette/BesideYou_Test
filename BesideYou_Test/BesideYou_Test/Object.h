@@ -90,6 +90,10 @@ public:
 	void AddRef();
 	void Release();
 
+	D3DXMATRIX m_d3dxmtxRotate;
+	D3DXMATRIX m_d3dxmtxScale;
+	D3DXMATRIX m_d3dxmtxTranlate;
+
 	virtual void SetMesh(CMesh *pMesh, int nindex = 0);
 	virtual void Animate(float fTimeElapsed);
 	virtual void Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera);
@@ -99,6 +103,10 @@ public:
 	virtual void SetPosition(D3DXVECTOR3 d3dxvPosition);
 	D3DXVECTOR3 GetPosition();
 
+	//3.3
+	CMesh *GetMesh(int nIndex = 0) { 
+		return(m_ppMeshes[nIndex]); 
+	}
 public:
 	//로컬 x-축, y-축, z-축 방향으로 이동한다.
 	void MoveStrafe(float fDistance = 1.0f);
@@ -203,6 +211,9 @@ public:
 	float GetWidth() { return(m_nWidth * m_d3dxvScale.x);}
 	float GetLength() { return(m_nLength * m_d3dxvScale.z);}
 	float GetPeakHeight() {	return(m_bcMeshBoundingCube.m_d3dxvMaximum.y);}
+
+	//3.3
+	virtual void Animate(float fTimeElapsed);
 };
 
 //3.2

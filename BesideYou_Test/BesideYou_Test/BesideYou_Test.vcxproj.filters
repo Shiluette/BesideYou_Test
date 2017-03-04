@@ -72,6 +72,9 @@
     <ClInclude Include="FBXMesh.h">
       <Filter>소스 파일\Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="CharacterShader.h">
+      <Filter>소스 파일\Shader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -113,6 +116,9 @@
     <ClCompile Include="FBXMesh.cpp">
       <Filter>소스 파일\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="CharacterShader.cpp">
+      <Filter>소스 파일\Shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BesideYou_Test.rc">
@@ -130,5 +136,11 @@
   <ItemGroup>
     <FxCompile Include="Effect.fx" />
     <FxCompile Include="Light.fx" />
+    <FxCompile Include="CharacterSkinned.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\..\..\..\Public\Desktop\카카오톡.lnk">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>

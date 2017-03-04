@@ -9,9 +9,19 @@ CShader::CShader()
 	m_ppObjects = NULL;
 	m_nObjects = 0;
 
+	//3.3
+	if (m_nObjects > 0)
+	{
+		m_ppObjects = new CGameObject*[m_nObjects];
+		for (int i = 0; i < m_nObjects; i++) m_ppObjects[i] = NULL;
+	}
+
 	m_pd3dVertexShader = NULL;
 	m_pd3dVertexLayout = NULL;
 	m_pd3dPixelShader = NULL;
+
+	//3.3
+	m_nIndexToAdd = 0;
 }
 
 CShader::~CShader()
@@ -151,6 +161,13 @@ void CShader::UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, D3DXM
 
 	//상수 버퍼를 디바이스의 슬롯(VS_SLOT_WORLD_MATRIX)에 연결한다.
 	pd3dDeviceContext->VSSetConstantBuffers(VS_SLOT_WORLD_MATRIX, 1, &m_pd3dcbWorldMatrix);
+}
+
+//3.3
+void CShader::AddObject(CGameObject *pGameObject)
+{
+	m_ppObjects[m_nIndexToAdd++] = pGameObject;
+	if (pGameObject) pGameObject->AddRef();
 }
 
 CSceneShader::CSceneShader()

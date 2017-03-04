@@ -51,6 +51,7 @@ using namespace std;
 
 #include "Shader.h"
 #include "IlluminatedShader.h"
+#include "CharacterShader.h"
 
 #include "Scene.h"
 #include "GameFramework.h"
@@ -92,6 +93,9 @@ using namespace std;
 #define PS_SLOT_TEXTURE		0x00
 #define PS_SLOT_SAMPLER_STATE		0x00
 
-
+//animation
+#define ANIFRAMETIME			0.0333333f
+#define VS_SLOT_SKINNEDBONE		0x02
+#define GetFBXMesh				GetGameObject(0)->GetMesh(0)
 
 //---------------------------------------------------------------------------------------------

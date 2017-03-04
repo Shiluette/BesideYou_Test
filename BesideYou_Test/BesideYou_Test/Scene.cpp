@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 //#include "Scene.h"
 
 CScene::CScene()
@@ -96,7 +97,8 @@ void CScene::UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, LIGHTS
 
 void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 {
-	m_nShaders = 2;
+	//3.3
+	m_nShaders = 3;
 	m_ppShaders = new CShader*[m_nShaders];
 
 	m_ppShaders[0] = new CSceneShader();
@@ -106,6 +108,53 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 	m_ppShaders[1] = new CTerrainShader();
 	m_ppShaders[1]->CreateShader(pd3dDevice);
 	m_ppShaders[1]->BuildObjects(pd3dDevice);
+
+	{
+		CMaterial *pNormalMaterial = new CMaterial();
+		pNormalMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.8f, 0.8f, 0.8f, 1.0f);
+		pNormalMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		pNormalMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+		pNormalMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+
+		//3.3
+		ID3D11SamplerState *pd3dSamplerState = NULL;
+		D3D11_SAMPLER_DESC d3dSamplerDesc;
+		ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+		d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		d3dSamplerDesc.MinLOD = 0;
+		d3dSamplerDesc.MaxLOD = 0;
+		pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
+
+		//3.3
+		ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+		CTexture *pDrayerTexture = new CTexture(1, 1, 0, 0);
+		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/drayer_diffuse.png"), NULL, NULL, &pd3dsrvTexture, NULL);
+		pDrayerTexture->SetTexture(0, pd3dsrvTexture);
+		pDrayerTexture->SetSampler(0, pd3dSamplerState);
+		pd3dsrvTexture->Release();
+		pd3dsrvTexture = NULL;
+
+		//3.3
+		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/drayer_animation.data", 0.3);
+
+		m_ppShaders[2] = new CCharacterShader(1);
+		m_ppShaders[2]->CreateShader(pd3dDevice);
+		m_ppShaders[2]->BuildObjects(pd3dDevice);
+
+		CGameObject * pTestObject = new CGameObject(1);
+		pTestObject->SetMesh(pTestMesh);
+		pTestObject->SetMaterial(pNormalMaterial);
+		pTestObject->SetTexture(pDrayerTexture);
+		pTestObject->Rotate(-90.0f, 0.0f, 0.0f);
+		pTestObject->SetPosition(1028.0f, 0.0f, 1028.0f);
+		
+		//AddObject는 BuildObjects에서 Object를 초기화하지않기때문에 따로 만들어준 함수
+		m_ppShaders[2]->AddObject(pTestObject);
+	}
 
 	//2.25
 	//조명설정
@@ -201,6 +250,10 @@ void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
 
 	for (int i = 0; i < m_nShaders; i++)
 	{
+		//3.3
+		if ( i == 2 )
+			m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());
+		//if ( i != 1 )
 		m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
 	}
 }

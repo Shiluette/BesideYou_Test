@@ -16,7 +16,10 @@ CMaterial::~CMaterial()
 CGameObject::CGameObject(int nMeshes)
 {
 	D3DXMatrixIdentity(&m_d3dxmtxWorld);
-	
+	D3DXMatrixIdentity(&m_d3dxmtxRotate);
+	D3DXMatrixIdentity(&m_d3dxmtxScale);
+	D3DXMatrixIdentity(&m_d3dxmtxTranlate);
+
 	m_nMeshes = nMeshes;
 	m_ppMeshes = NULL;
 	if (m_nMeshes > 0) m_ppMeshes = new CMesh*[m_nMeshes];
@@ -91,20 +94,39 @@ void CGameObject::SetMesh(CMesh *pMesh, int nIndex)
 
 void CGameObject::Animate(float fTimeElapsed)
 {
+	//3.3
+	if (GetMesh(0)->GetFBXModelSize() != 0.0f || GetMesh(0)->GetFBXModelSize() != 1.0f)
+	{
+		D3DXMATRIX mtxScale;
+		D3DXMatrixScaling(&mtxScale, GetMesh(0)->GetFBXModelSize(), GetMesh(0)->GetFBXModelSize(), GetMesh(0)->GetFBXModelSize());
+		m_d3dxmtxScale = mtxScale;
+	}
+
+	m_d3dxmtxWorld = m_d3dxmtxScale * m_d3dxmtxRotate * m_d3dxmtxTranlate;
 }
 
 void CGameObject::SetPosition(float x, float y, float z)
 {
-	m_d3dxmtxWorld._41 = x;
+	/*m_d3dxmtxWorld._41 = x;
 	m_d3dxmtxWorld._42 = y;
-	m_d3dxmtxWorld._43 = z;
+	m_d3dxmtxWorld._43 = z;*/
+
+	//3.3
+	m_d3dxmtxTranlate._41 = x;
+	m_d3dxmtxTranlate._42 = y;
+	m_d3dxmtxTranlate._43 = z;
 }
 
 void CGameObject::SetPosition(D3DXVECTOR3 d3dxvPosition)
 {
-	m_d3dxmtxWorld._41 = d3dxvPosition.x;
+	/*m_d3dxmtxWorld._41 = d3dxvPosition.x;
 	m_d3dxmtxWorld._42 = d3dxvPosition.y;
-	m_d3dxmtxWorld._43 = d3dxvPosition.z;
+	m_d3dxmtxWorld._43 = d3dxvPosition.z;*/
+
+	//3.3
+	m_d3dxmtxTranlate._41 = d3dxvPosition.x;
+	m_d3dxmtxTranlate._42 = d3dxvPosition.y;
+	m_d3dxmtxTranlate._43 = d3dxvPosition.z;
 }
 
 D3DXVECTOR3 CGameObject::GetPosition()
@@ -202,7 +224,9 @@ void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 	//게임 객체를 주어진 각도로 회전한다.
 	D3DXMATRIX mtxRotate;
 	D3DXMatrixRotationYawPitchRoll(&mtxRotate, (float)D3DXToRadian(fYaw), (float)D3DXToRadian(fPitch), (float)D3DXToRadian(fRoll));
-	m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
+	//m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
+	//3.3
+	m_d3dxmtxRotate = mtxRotate;
 }
 
 void CGameObject::Rotate(D3DXVECTOR3 *pd3dxvAxis, float fAngle)
@@ -210,8 +234,11 @@ void CGameObject::Rotate(D3DXVECTOR3 *pd3dxvAxis, float fAngle)
 	//게임 객체를 주어진 회전축을 중심으로 회전한다.
 	D3DXMATRIX mtxRotate;
 	D3DXMatrixRotationAxis(&mtxRotate, pd3dxvAxis, (float)D3DXToRadian(fAngle));
-	m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
+	//m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
+	//3.3
+	m_d3dxmtxRotate = mtxRotate;
 }
+
 
 //2.23-1
 bool CGameObject::IsVisible(CCamera *pCamera)
@@ -402,6 +429,12 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D11Device *pd3dDevice, int nWidth, int n
 
 CHeightMapTerrain::~CHeightMapTerrain()
 {
+}
+
+//3.3
+void CHeightMapTerrain::Animate(float fTimeElapsed)
+{
+
 }
 
 //2.26

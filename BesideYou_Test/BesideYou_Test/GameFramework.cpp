@@ -587,8 +587,6 @@ void CGameFramework::FrameAdvance()
 	float fClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	//렌더 타겟 뷰를 색상(RGB: 0.0f, 0.125f, 0.3f)으로 지운다. 
 	m_pd3dDeviceContext->ClearRenderTargetView(m_pd3dRenderTargetView, fClearColor);
-	
-	//07100
 	if (m_pd3dDepthStencilView) m_pd3dDeviceContext->ClearDepthStencilView(m_pd3dDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	if (m_pPlayer) m_pPlayer->UpdateShaderVariables(m_pd3dDeviceContext);
@@ -598,10 +596,10 @@ void CGameFramework::FrameAdvance()
 	if (m_pScene) m_pScene->Render(m_pd3dDeviceContext, m_pCamera);
 
 	//다이렉트2d
-	Render2D();
+	//Render2D();
 
 	/*렌더 타겟은 그대로 두고 깊이 버퍼를 1.0으로 지운다. 이제 플레이어를 렌더링하면 플레이어는 무조건 그려질 것이다.*/
-	m_pd3dDeviceContext->ClearDepthStencilView(m_pd3dDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//m_pd3dDeviceContext->ClearDepthStencilView(m_pd3dDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//3인칭 카메라일 때 플레이어를 렌더링한다.
 	if (m_pPlayerShader) m_pPlayerShader->Render(m_pd3dDeviceContext, m_pCamera);
@@ -620,7 +618,6 @@ void CGameFramework::FrameAdvance()
 //3.2
 void CGameFramework::FBXModelDataLoad(void)
 {
-
 	ID3D11SamplerState *pd3dSamplerState = NULL;
 	D3D11_SAMPLER_DESC d3dSamplerDesc;
 	ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));

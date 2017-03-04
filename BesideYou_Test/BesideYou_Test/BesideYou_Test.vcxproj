@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="BesideYou_Test.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CharacterShader.h" />
     <ClInclude Include="ClientHeader.h" />
     <ClInclude Include="FBXMesh.h" />
     <ClInclude Include="GameFramework.h" />
@@ -165,6 +166,7 @@
   <ItemGroup>
     <ClCompile Include="BesideYou_Test.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CharacterShader.cpp" />
     <ClCompile Include="FBXMesh.cpp" />
     <ClCompile Include="GameFramework.cpp" />
     <ClCompile Include="IlluminatedShader.cpp" />
@@ -190,6 +192,9 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="CharacterSkinned.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Effect.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -197,6 +202,9 @@
     <FxCompile Include="Light.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\..\..\..\Public\Desktop\카카오톡.lnk" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

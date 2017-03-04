@@ -112,6 +112,18 @@ protected:
 //2.23-1
 public:
 	AABB GetBoundingCube() { return(m_bcBoundingCube); }
+
+//3.3
+// Animation
+	virtual void UpdateBoneTransform(ID3D11DeviceContext *pd3dDeviceContext, int nAnimationNum, int nNowFrame);
+	virtual float GetFBXModelSize() { return 0; }
+	virtual float GetFBXAnimationTime() { return 0; }
+	virtual int GetFBXAnimationNum() { return 0; }
+	virtual int GetFBXNowFrameNum() { return 0; }
+	virtual int GetFBXMaxFrameNum() { return 0; }
+	//virtual void SetFBXAnimationTime(float fFBXAnimationTime) { }
+	virtual bool FBXFrameAdvance(float fTimeElapsed) { return 0; }
+	virtual void SetAnimation(int nFBXAnimationNum) {}
 };
 
 class CAirplaneMesh : public CMesh
