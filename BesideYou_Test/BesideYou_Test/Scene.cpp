@@ -2,6 +2,10 @@
 
 //#include "Scene.h"
 
+//3.5
+static bool bCharaterRun = false;
+static bool bCharaterPunch = false;
+
 CScene::CScene()
 {
 	m_ppShaders = NULL;
@@ -139,7 +143,7 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 		pd3dsrvTexture = NULL;
 
 		//3.3
-		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/drayer_animation.data", 0.3);
+		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/drayer_animation.data", 0.1);
 
 		m_ppShaders[2] = new CCharacterShader(1);
 		m_ppShaders[2]->CreateShader(pd3dDevice);
@@ -176,11 +180,63 @@ void CScene::ReleaseObjects()
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	
+
+
 	return(false);
 }
 
 bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	//3.5
+	switch (nMessageID)
+	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case 'Z':
+			if (!bCharaterRun && !bCharaterPunch)
+			{
+				m_ppShaders[2]->GetFBXMesh->SetAnimation(1);
+				bCharaterRun = true;
+				bCharaterPunch = false;
+			}
+			break;
+		case 'X':
+			if (!bCharaterPunch)
+			{
+				m_ppShaders[2]->GetFBXMesh->SetAnimation(2);
+				bCharaterRun = false;
+				bCharaterPunch = true;
+			}
+		default:
+			break;
+		}
+		break;
+	case WM_KEYUP:
+		switch (wParam)
+		{
+		case 'Z':
+			if (bCharaterRun)
+			{
+				m_ppShaders[2]->GetFBXMesh->SetAnimation(0);
+				bCharaterRun = false;
+			}
+			break;
+		case 'X':
+			if (bCharaterPunch)
+			{
+				m_ppShaders[2]->GetFBXMesh->SetAnimation(0);
+				bCharaterPunch = false;
+			}
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+
 	return(false);
 }
 
@@ -241,6 +297,8 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	{
 		m_ppShaders[i]->AnimateObjects(fTimeElapsed);
 	}
+
+	m_ppShaders[2]->GetFBXMesh->FBXFrameAdvance(fTimeElapsed);
 }
 
 void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
@@ -253,8 +311,8 @@ void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
 		//3.3
 		if ( i == 2 )
 			m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());
-		//if ( i != 1 )
-		m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
+		if ( i != 1 )
+			m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
 	}
 }
 

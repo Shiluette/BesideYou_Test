@@ -39,8 +39,6 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 			m_pd3dxvBoneWeights = new D3DXVECTOR4[m_nVertices];
 		}
 
-		
-
 		for (int i = 0; i < m_nVertices; i++)
 		{
 			// Vertice
