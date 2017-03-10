@@ -233,6 +233,7 @@ void CPlayerShader::CreateShader(ID3D11Device *pd3dDevice)
 	//3.2 
 	//텍스쳐와 조명을 같이 썼을때
 	CTexturedIlluminatedShader::CreateShader(pd3dDevice);
+
 }
 
 void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
@@ -324,7 +325,7 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
 
-	m_pTexture = (*modeldata.begin())->m_pModelTexture;
+	/*m_pTexture = (*modeldata.begin())->m_pModelTexture;
 	if ((*modeldata.begin())->m_pModelTexture) (*modeldata.begin())->m_pModelTexture->AddRef();
 
 	CMaterial *pTestMaterial = new CMaterial();
@@ -332,16 +333,55 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 	pTestMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 	pTestMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 	pTestMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-
+		
 	CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
 	pPlayer->SetMesh((*modeldata.begin())->m_pModelMesh);
 	pPlayer->SetTexture((*modeldata.begin())->m_pModelTexture);
 	pPlayer->SetMaterial(pTestMaterial);
 	pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
+	m_ppObjects[0] = pPlayer;*/
 
-	//pTestModel->SetPosition(1000, 800, 1000);
-	
-	m_ppObjects[0] = pPlayer;
+	//3.6
+	{
+		CMaterial *pNormalMaterial = new CMaterial();
+		pNormalMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(0.8f, 0.8f, 0.8f, 1.0f);
+		pNormalMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		pNormalMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 5.0f);
+		pNormalMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+
+		ID3D11SamplerState *pd3dSamplerState = NULL;
+		D3D11_SAMPLER_DESC d3dSamplerDesc;
+		ZeroMemory(&d3dSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+		d3dSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		d3dSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		d3dSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		d3dSamplerDesc.MinLOD = 0;
+		d3dSamplerDesc.MaxLOD = 0;
+		pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
+
+		ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+		CTexture *pDrayerTexture = new CTexture(1, 1, 0, 0);
+		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/drayer_diffuse.png"), NULL, NULL, &pd3dsrvTexture, NULL);
+		pDrayerTexture->SetTexture(0, pd3dsrvTexture);
+		pDrayerTexture->SetSampler(0, pd3dSamplerState);
+		pd3dsrvTexture->Release();
+		pd3dsrvTexture = NULL;
+
+		m_pTexture = pDrayerTexture;
+		if (m_pTexture) m_pTexture->AddRef();
+
+		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/drayer_animation.data", 0.01);
+
+		CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
+		pPlayer->SetMesh(pTestMesh);
+		pPlayer->SetTexture(pDrayerTexture);
+		pPlayer->SetMaterial(pNormalMaterial);
+		pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
+		//pPlayer->SetPosition(D3DXVECTOR3(0.0f, -500.0f, 0.0f));
+		m_ppObjects[0] = pPlayer;
+	}
 }
 
 void CPlayerShader::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)

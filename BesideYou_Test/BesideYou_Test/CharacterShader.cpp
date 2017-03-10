@@ -36,3 +36,4 @@ void CCharacterShader::CreateShader(ID3D11Device *pd3dDevice)
 	CreateVertexShaderFromFile(pd3dDevice, L"CharacterSkinned.fx", "VSSkinned", "vs_5_0", &m_pd3dVertexShader, d3dInputElements, nElements, &m_pd3dVertexLayout);
 	CreatePixelShaderFromFile(pd3dDevice, L"CharacterSkinned.fx", "PSSkinned", "ps_5_0", &m_pd3dPixelShader);
 }
+

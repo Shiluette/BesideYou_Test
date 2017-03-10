@@ -73,9 +73,9 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 
 		/*for (int i = 0; i < m_nVertices; ++i)
 		{
-			m_pd3dxvPositions[i].x *= 0.3f;
-			m_pd3dxvPositions[i].y *= 0.3f;
-			m_pd3dxvPositions[i].z *= 0.3f;
+			m_pd3dxvPositions[i].x *= 0.1f;
+			m_pd3dxvPositions[i].y *= 0.1f;
+			m_pd3dxvPositions[i].z *= 0.1f;
 		}*/
 
 		// 인덱스 데이터 저장

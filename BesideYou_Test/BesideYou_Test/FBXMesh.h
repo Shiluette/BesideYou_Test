@@ -61,7 +61,9 @@ public:
 	// 뼈대 상수 버퍼 설정
 	void CreateConstantBuffer(ID3D11Device *pd3dDevice);
 
-	float GetFBXModelSize() { return m_fFBXModelSize; }
+	float GetFBXModelSize() { 
+		return m_fFBXModelSize; 
+	}
 	float GetFBXAnimationTime() { return m_fFBXAnimationTime; }
 	int GetFBXAnimationNum() { 
 		return m_nFBXAnimationNum; 

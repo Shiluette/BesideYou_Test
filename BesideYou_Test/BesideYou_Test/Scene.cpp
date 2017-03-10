@@ -194,7 +194,7 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		case 'Z':
+		/*case 'Z':
 			if (!bCharaterRun && !bCharaterPunch)
 			{
 				m_ppShaders[2]->GetFBXMesh->SetAnimation(1);
@@ -208,7 +208,7 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				m_ppShaders[2]->GetFBXMesh->SetAnimation(2);
 				bCharaterRun = false;
 				bCharaterPunch = true;
-			}
+			}*/
 		default:
 			break;
 		}
@@ -216,7 +216,7 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYUP:
 		switch (wParam)
 		{
-		case 'Z':
+		/*case 'Z':
 			if (bCharaterRun)
 			{
 				m_ppShaders[2]->GetFBXMesh->SetAnimation(0);
@@ -228,7 +228,7 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			{
 				m_ppShaders[2]->GetFBXMesh->SetAnimation(0);
 				bCharaterPunch = false;
-			}
+			}*/
 		default:
 			break;
 		}
@@ -312,7 +312,7 @@ void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
 		if ( i == 2 )
 			m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());
 		if ( i != 1 )
-			m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
+		m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
 	}
 }
 

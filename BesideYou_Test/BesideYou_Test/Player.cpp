@@ -273,12 +273,27 @@ void CPlayer::OnPrepareRender()
 	m_d3dxmtxWorld._41 = m_d3dxvPosition.x;
 	m_d3dxmtxWorld._42 = m_d3dxvPosition.y;
 	m_d3dxmtxWorld._43 = m_d3dxvPosition.z;
+
+	//3.10 
+	//Player모델의 사이즈 및 방향을 조절한다.
+	m_d3dxmtxWorld._11 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._12 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._13 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._21 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._22 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._23 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._31 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._32 *= GetMesh(0)->GetFBXModelSize();
+	m_d3dxmtxWorld._33 *= GetMesh(0)->GetFBXModelSize();
+
+	D3DXMATRIX mtxRotate;
+	D3DXMatrixRotationYawPitchRoll(&mtxRotate, (float)D3DXToRadian(90), (float)D3DXToRadian(-90), (float)D3DXToRadian(90));
+
+	m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
 }
 
 void CPlayer::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
-	
-
 	CGameObject::Render(pd3dDeviceContext, pCamera);
 }
 
@@ -352,6 +367,11 @@ void CAirplanePlayer::ChangeCamera(ID3D11Device *pd3dDevice, DWORD nNewCameraMod
 
 CTerrainPlayer::CTerrainPlayer(int nMeshes) : CPlayer(nMeshes)
 {
+}
+
+void CTerrainPlayer::OnPrepareRender()
+{
+	CPlayer::OnPrepareRender();
 }
 
 void CTerrainPlayer::ChangeCamera(ID3D11Device * pd3dDevice, DWORD nNewCameraMode, float fTimeElapsed)

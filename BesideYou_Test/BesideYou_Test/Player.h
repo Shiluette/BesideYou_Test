@@ -120,4 +120,7 @@ public:
 
 	virtual void OnPlayerUpdated(float fTimeElapsed);
 	virtual void OnCameraUpdated(float fTimeElapsed);
+
+	//3.9
+	virtual void OnPrepareRender();
 };

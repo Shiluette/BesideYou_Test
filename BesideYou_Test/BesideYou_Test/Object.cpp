@@ -105,6 +105,7 @@ void CGameObject::Animate(float fTimeElapsed)
 	m_d3dxmtxWorld = m_d3dxmtxScale * m_d3dxmtxRotate * m_d3dxmtxTranlate;
 }
 
+
 void CGameObject::SetPosition(float x, float y, float z)
 {
 	/*m_d3dxmtxWorld._41 = x;
@@ -136,6 +137,9 @@ D3DXVECTOR3 CGameObject::GetPosition()
 
 void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamera)
 {
+	//3.7
+	OnPrepareRender();
+
 	CShader::UpdateShaderVariable(pd3dDeviceContext, &m_d3dxmtxWorld);
 
 	//2.25
@@ -238,7 +242,6 @@ void CGameObject::Rotate(D3DXVECTOR3 *pd3dxvAxis, float fAngle)
 	//3.3
 	m_d3dxmtxRotate = mtxRotate;
 }
-
 
 //2.23-1
 bool CGameObject::IsVisible(CCamera *pCamera)
