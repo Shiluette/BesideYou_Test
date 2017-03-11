@@ -54,7 +54,8 @@ public:
 	~CScene();
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+	//3.11 인자로 m_pPlayerShader 추가
+	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, CPlayerShader * playerShader);
 
 	void BuildObjects(ID3D11Device *pd3dDevice);
 	void ReleaseObjects();

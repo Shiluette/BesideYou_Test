@@ -102,7 +102,7 @@ void CScene::UpdateShaderVariable(ID3D11DeviceContext *pd3dDeviceContext, LIGHTS
 void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 {
 	//3.3
-	m_nShaders = 3;
+	m_nShaders = 2;
 	m_ppShaders = new CShader*[m_nShaders];
 
 	m_ppShaders[0] = new CSceneShader();
@@ -186,7 +186,7 @@ bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
 	return(false);
 }
 
-bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, CPlayerShader * playerShader)
 {
 	//3.5
 	switch (nMessageID)
@@ -194,10 +194,35 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		/*case 'Z':
+		//3.11 뛰는 애니메이션 조작키를 Z에서 방향키로 바꿈
+		case VK_UP:
 			if (!bCharaterRun && !bCharaterPunch)
 			{
-				m_ppShaders[2]->GetFBXMesh->SetAnimation(1);
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bCharaterRun = true;
+				bCharaterPunch = false;
+			}
+			break;
+		case VK_DOWN:
+			if (!bCharaterRun && !bCharaterPunch)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bCharaterRun = true;
+				bCharaterPunch = false;
+			}
+			break;
+		case VK_LEFT:
+			if (!bCharaterRun && !bCharaterPunch)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bCharaterRun = true;
+				bCharaterPunch = false;
+			}
+			break;
+		case VK_RIGHT:
+			if (!bCharaterRun && !bCharaterPunch)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
 				bCharaterRun = true;
 				bCharaterPunch = false;
 			}
@@ -205,10 +230,10 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		case 'X':
 			if (!bCharaterPunch)
 			{
-				m_ppShaders[2]->GetFBXMesh->SetAnimation(2);
+				playerShader->GetFBXMesh->SetAnimation(2);
 				bCharaterRun = false;
 				bCharaterPunch = true;
-			}*/
+			}
 		default:
 			break;
 		}
@@ -216,19 +241,40 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYUP:
 		switch (wParam)
 		{
-		/*case 'Z':
+		case VK_UP:
 			if (bCharaterRun)
 			{
-				m_ppShaders[2]->GetFBXMesh->SetAnimation(0);
+				playerShader->GetFBXMesh->SetAnimation(0);
+				bCharaterRun = false;
+			}
+			break;
+		case VK_DOWN:
+			if (bCharaterRun)
+			{
+				playerShader->GetFBXMesh->SetAnimation(0);
+				bCharaterRun = false;
+			}
+			break;
+		case VK_LEFT:
+			if (bCharaterRun)
+			{
+				playerShader->GetFBXMesh->SetAnimation(0);
+				bCharaterRun = false;
+			}
+			break;
+		case VK_RIGHT:
+			if (bCharaterRun)
+			{
+				playerShader->GetFBXMesh->SetAnimation(0);
 				bCharaterRun = false;
 			}
 			break;
 		case 'X':
 			if (bCharaterPunch)
 			{
-				m_ppShaders[2]->GetFBXMesh->SetAnimation(0);
+				playerShader->GetFBXMesh->SetAnimation(0);
 				bCharaterPunch = false;
-			}*/
+			}
 		default:
 			break;
 		}
@@ -298,7 +344,7 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		m_ppShaders[i]->AnimateObjects(fTimeElapsed);
 	}
 
-	m_ppShaders[2]->GetFBXMesh->FBXFrameAdvance(fTimeElapsed);
+	//m_ppShaders[2]->GetFBXMesh->FBXFrameAdvance(fTimeElapsed);
 }
 
 void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
@@ -309,9 +355,9 @@ void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
 	for (int i = 0; i < m_nShaders; i++)
 	{
 		//3.3
-		if ( i == 2 )
-			m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());
-		if ( i != 1 )
+		/*if ( i == 2 )
+			m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());*/
+		//if ( i != 1 )
 		m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
 	}
 }

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 //#include "GameFramework.h"
 
+//백업되는지 확인해볼까?
+
 //3.2
 CTexture* CreateTexture(ID3D11Device* pd3dDevice, WCHAR* ptrstring, ID3D11ShaderResourceView** pd3dsrvTexture, ID3D11SamplerState** pd3dSamplerState, int nTextureStartSlot, int nSamplerStartSlot)
 {
@@ -253,8 +255,8 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 
 LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-	//3.5
-	if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+	//3.11 인자로 m_pPlayerShader추가
+	if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam, m_pPlayerShader);
 
 	switch (nMessageID)
 	{
@@ -531,7 +533,7 @@ void CGameFramework::ProcessInput()
 		/*키보드의 상태 정보를 반환한다. 화살표 키(‘→’, ‘←’, ‘↑’, ‘↓’)를 누르면 플레이어를 오른쪽/왼쪽(로컬 x-축), 앞/뒤(로컬 z-축)로 이동한다. ‘Page Up’과 ‘Page Down’ 키를 누르면 플레이어를 위/아래(로컬 y-축)로 이동한다.*/
 		if (GetKeyboardState(pKeyBuffer))
 		{
-			if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
+			if (pKeyBuffer[VK_UP] & 0xF0)dwDirection |= DIR_FORWARD;
 			if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
 			if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
 			if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
@@ -580,6 +582,9 @@ void CGameFramework::AnimateObjects()
 	//3.6
 	//if (m_pPlayer) m_pPlayer->Animate(m_GameTimer.GetTimeElapsed());
 	//if (m_pPlayerShader) m_pPlayerShader->AnimateObjects(m_GameTimer.GetTimeElapsed());
+
+	//3.11
+	m_pPlayerShader->GetFBXMesh->FBXFrameAdvance(m_GameTimer.GetTimeElapsed());
 }
 
 void CGameFramework::FrameAdvance()
@@ -608,6 +613,8 @@ void CGameFramework::FrameAdvance()
 
 	//3인칭 카메라일 때 플레이어를 렌더링한다.
 	if (m_pPlayerShader) {
+		//3.11
+		m_pPlayerShader->GetFBXMesh->UpdateBoneTransform(m_pd3dDeviceContext, m_pPlayerShader->GetFBXMesh->GetFBXAnimationNum(), m_pPlayerShader->GetFBXMesh->GetFBXNowFrameNum());
 		m_pPlayerShader->Render(m_pd3dDeviceContext, m_pCamera);
 	}
 
