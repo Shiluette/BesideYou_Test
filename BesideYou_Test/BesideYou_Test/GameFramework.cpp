@@ -596,7 +596,7 @@ void CGameFramework::FrameAdvance()
 
 	AnimateObjects();
 
-	float fClearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float fClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	//·»´õ Å¸°Ù ºä¸¦ »ö»ó(RGB: 0.0f, 0.125f, 0.3f)À¸·Î Áö¿î´Ù. 
 	m_pd3dDeviceContext->ClearRenderTargetView(m_pd3dRenderTargetView, fClearColor);
 	if (m_pd3dDepthStencilView) m_pd3dDeviceContext->ClearDepthStencilView(m_pd3dDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -645,12 +645,12 @@ void CGameFramework::FBXModelDataLoad(void)
 	m_pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
 
 	ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
-	CTexture *TestTexture = CreateTexture(m_pd3dDevice, _T("../Data/Vehice_Ambulance.png"), &pd3dsrvTexture, &pd3dSamplerState, 0, 0);
+	CTexture *TestTexture = CreateTexture(m_pd3dDevice, _T("../Data/BesideYouData/Vehice_Ambulance.png"), &pd3dsrvTexture, &pd3dSamplerState, 0, 0);
 	pd3dSamplerState->Release();
 
 	//CMesh* pTestMesh = new CFBXMesh(m_pd3dDevice, "../Data/ambo_mesh.data", 0.01);
 
-	CMesh * pTestMesh = new CAssetMesh(m_pd3dDevice, "../Data/ambo_mesh.data");
+	CMesh * pTestMesh = new CAssetMesh(m_pd3dDevice, "../Data/BesideYouData/ambo_mesh.data");
 	
 	m_vtCharacterDatas.push_back(new ModelContainer{ "TestModel", pTestMesh, TestTexture });
 

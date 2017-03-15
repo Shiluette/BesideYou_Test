@@ -193,7 +193,7 @@ void CSceneShader::BuildObjects(ID3D11Device *pd3dDevice)
 	m_ppObjects = new CGameObject*[m_nObjects];
 
 	CRotatingObject *pRotatingObject = NULL;
-	
+
 	for (int i = 0; i < m_nObjects; i++)
 	{
 		pRotatingObject = new CRotatingObject();
@@ -298,7 +298,7 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 		pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
 		pPlayer->SetMaterial(pRedMaterial);
 		pPlayer->SetTexture(m_pTexture);
-		
+
 		CCamera *pCamera = pPlayer->GetCamera();
 		pCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
 		pCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
@@ -346,7 +346,7 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 	pTestMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 	pTestMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 	pTestMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		
+
 	CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
 	pPlayer->SetMesh((*modeldata.begin())->m_pModelMesh);
 	pPlayer->SetTexture((*modeldata.begin())->m_pModelTexture);
@@ -376,7 +376,7 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 
 		ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
 		CTexture *pDrayerTexture = new CTexture(1, 1, 0, 0);
-		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/drayer_diffuse.png"), NULL, NULL, &pd3dsrvTexture, NULL);
+		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/BesideYouData/Butcher_Albedo.jpg"), NULL, NULL, &pd3dsrvTexture, NULL);
 		pDrayerTexture->SetTexture(0, pd3dsrvTexture);
 		pDrayerTexture->SetSampler(0, pd3dSamplerState);
 		pd3dsrvTexture->Release();
@@ -385,7 +385,7 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 		m_pTexture = pDrayerTexture;
 		if (m_pTexture) m_pTexture->AddRef();
 
-		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/drayer_animation.data", 0.01);
+		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/BesideYouData/Butcher_attack.data", 0.3);
 
 		CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
 		pPlayer->SetMesh(pTestMesh);

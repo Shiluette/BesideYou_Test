@@ -133,31 +133,32 @@ void CScene::BuildObjects(ID3D11Device *pd3dDevice)
 		d3dSamplerDesc.MaxLOD = 0;
 		pd3dDevice->CreateSamplerState(&d3dSamplerDesc, &pd3dSamplerState);
 
-		//3.3
-		ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
-		CTexture *pDrayerTexture = new CTexture(1, 1, 0, 0);
-		D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/drayer_diffuse.png"), NULL, NULL, &pd3dsrvTexture, NULL);
-		pDrayerTexture->SetTexture(0, pd3dsrvTexture);
-		pDrayerTexture->SetSampler(0, pd3dSamplerState);
-		pd3dsrvTexture->Release();
-		pd3dsrvTexture = NULL;
+		//3.13
+		////3.3
+		//ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
+		//CTexture *pDrayerTexture = new CTexture(1, 1, 0, 0);
+		//D3DX11CreateShaderResourceViewFromFile(pd3dDevice, _T("../Data/drayer_diffuse.png"), NULL, NULL, &pd3dsrvTexture, NULL);
+		//pDrayerTexture->SetTexture(0, pd3dsrvTexture);
+		//pDrayerTexture->SetSampler(0, pd3dSamplerState);
+		//pd3dsrvTexture->Release();
+		//pd3dsrvTexture = NULL;
 
-		//3.3
-		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/drayer_animation.data", 0.1);
+		////3.3
+		//CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/Butcher.data", 0.3);
 
-		m_ppShaders[2] = new CCharacterShader(1);
-		m_ppShaders[2]->CreateShader(pd3dDevice);
-		m_ppShaders[2]->BuildObjects(pd3dDevice);
+		//m_ppShaders[2] = new CCharacterShader(1);
+		//m_ppShaders[2]->CreateShader(pd3dDevice);
+		//m_ppShaders[2]->BuildObjects(pd3dDevice);
 
-		CGameObject * pTestObject = new CGameObject(1);
-		pTestObject->SetMesh(pTestMesh);
-		pTestObject->SetMaterial(pNormalMaterial);
-		pTestObject->SetTexture(pDrayerTexture);
-		pTestObject->Rotate(-90.0f, 0.0f, 0.0f);
-		pTestObject->SetPosition(1028.0f, 0.0f, 1028.0f);
+		//CGameObject * pTestObject = new CGameObject(1);
+		//pTestObject->SetMesh(pTestMesh);
+		//pTestObject->SetMaterial(pNormalMaterial);
+		//pTestObject->SetTexture(pDrayerTexture);
+		//pTestObject->Rotate(-90.0f, 0.0f, 0.0f);
+		//pTestObject->SetPosition(1028.0f, 0.0f, 1028.0f);
 		
 		//AddObject는 BuildObjects에서 Object를 초기화하지않기때문에 따로 만들어준 함수
-		m_ppShaders[2]->AddObject(pTestObject);
+		//m_ppShaders[2]->AddObject(pTestObject);
 	}
 
 	//2.25
@@ -194,48 +195,49 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		//3.11 뛰는 애니메이션 조작키를 Z에서 방향키로 바꿈
-		case VK_UP:
-			if (!bCharaterRun && !bCharaterPunch)
-			{
-				playerShader->GetFBXMesh->SetAnimation(1);
-				bCharaterRun = true;
-				bCharaterPunch = false;
-			}
-			break;
-		case VK_DOWN:
-			if (!bCharaterRun && !bCharaterPunch)
-			{
-				playerShader->GetFBXMesh->SetAnimation(1);
-				bCharaterRun = true;
-				bCharaterPunch = false;
-			}
-			break;
-		case VK_LEFT:
-			if (!bCharaterRun && !bCharaterPunch)
-			{
-				playerShader->GetFBXMesh->SetAnimation(1);
-				bCharaterRun = true;
-				bCharaterPunch = false;
-			}
-			break;
-		case VK_RIGHT:
-			if (!bCharaterRun && !bCharaterPunch)
-			{
-				playerShader->GetFBXMesh->SetAnimation(1);
-				bCharaterRun = true;
-				bCharaterPunch = false;
-			}
-			break;
-		case 'X':
-			if (!bCharaterPunch)
-			{
-				playerShader->GetFBXMesh->SetAnimation(2);
-				bCharaterRun = false;
-				bCharaterPunch = true;
-			}
-		default:
-			break;
+		////3.11 뛰는 애니메이션 조작키를 Z에서 방향키로 바꿈
+		//case VK_UP:
+		//	if (!bCharaterRun && !bCharaterPunch)
+		//	{
+		//		playerShader->GetFBXMesh->SetAnimation(0);
+		//		bCharaterRun = true;
+		//		bCharaterPunch = false;
+		//	}
+		//	break;
+		//case VK_DOWN:
+		//	if (!bCharaterRun && !bCharaterPunch)
+		//	{
+		//		playerShader->GetFBXMesh->SetAnimation(0);
+		//		bCharaterRun = true;
+		//		bCharaterPunch = false;
+		//	}
+		//	break;
+		//case VK_LEFT:
+		//	if (!bCharaterRun && !bCharaterPunch)
+		//	{
+		//		playerShader->GetFBXMesh->SetAnimation(0);
+		//		bCharaterRun = true;
+		//		bCharaterPunch = false;
+		//	}
+		//	break;
+		//case VK_RIGHT:
+		//	if (!bCharaterRun && !bCharaterPunch)
+		//	{
+		//		playerShader->GetFBXMesh->SetAnimation(0);
+		//		bCharaterRun = true;
+		//		bCharaterPunch = false;
+		//	}
+		//	break;
+		//case 'X':
+		//	if (!bCharaterPunch)
+		//	{
+		//		playerShader->GetFBXMesh->SetAnimation(0);
+		//		bCharaterRun = false;
+		//		bCharaterPunch = true;
+		//	}
+		//	break;
+		//default:
+		//	break;
 		}
 		break;
 	case WM_KEYUP:
@@ -355,8 +357,8 @@ void CScene::Render(ID3D11DeviceContext*pd3dDeviceContext, CCamera *pCamera)
 	for (int i = 0; i < m_nShaders; i++)
 	{
 		//3.3
-		/*if ( i == 2 )
-			m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());*/
+		//if ( i == 2 )
+			//m_ppShaders[i]->GetFBXMesh->UpdateBoneTransform(pd3dDeviceContext, m_ppShaders[i]->GetFBXMesh->GetFBXAnimationNum(), m_ppShaders[i]->GetFBXMesh->GetFBXNowFrameNum());
 		//if ( i != 1 )
 		m_ppShaders[i]->Render(pd3dDeviceContext, pCamera);
 	}

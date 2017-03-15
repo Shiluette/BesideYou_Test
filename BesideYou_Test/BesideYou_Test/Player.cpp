@@ -287,7 +287,7 @@ void CPlayer::OnPrepareRender()
 	m_d3dxmtxWorld._33 *= GetMesh(0)->GetFBXModelSize();
 
 	D3DXMATRIX mtxRotate;
-	D3DXMatrixRotationYawPitchRoll(&mtxRotate, (float)D3DXToRadian(90), (float)D3DXToRadian(-90), (float)D3DXToRadian(90));
+	D3DXMatrixRotationYawPitchRoll(&mtxRotate, (float)D3DXToRadian(0), (float)D3DXToRadian(0), (float)D3DXToRadian(0));
 
 	m_d3dxmtxWorld = mtxRotate * m_d3dxmtxWorld;
 }

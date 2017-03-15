@@ -45,7 +45,7 @@ CGameObject::~CGameObject()
 			m_ppMeshes[i] = NULL;
 		}
 		delete[] m_ppMeshes;
-	}	
+	}
 
 	//2.25
 	if (m_pMaterial) m_pMaterial->Release();
@@ -85,7 +85,7 @@ void CGameObject::SetMesh(CMesh *pMesh, int nIndex)
 {
 	if (m_ppMeshes)
 	{
-		if (m_ppMeshes[nIndex]) 
+		if (m_ppMeshes[nIndex])
 			m_ppMeshes[nIndex]->Release();
 		m_ppMeshes[nIndex] = pMesh;
 		if (pMesh) pMesh->AddRef();
@@ -149,7 +149,7 @@ void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamer
 
 	//2.26
 	//객체의 텍스쳐를 쉐이더 변수에 설정(연결)한다.
-	if (m_pTexture) 
+	if (m_pTexture)
 		m_pTexture->UpdateShaderVariable(pd3dDeviceContext);
 
 	if (m_ppMeshes)
@@ -165,7 +165,7 @@ void CGameObject::Render(ID3D11DeviceContext *pd3dDeviceContext, CCamera *pCamer
 					bcBoundingCube.Update(&m_d3dxmtxWorld);
 					bIsVisible = pCamera->IsInFrustum(&bcBoundingCube);
 				}
-				if (bIsVisible) 
+				if (bIsVisible)
 					m_ppMeshes[i]->Render(pd3dDeviceContext);
 			}
 		}
