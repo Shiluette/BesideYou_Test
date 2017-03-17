@@ -2,9 +2,14 @@
 
 //#include "Scene.h"
 
-//3.5
-static bool bCharaterRun = false;
-static bool bCharaterPunch = false;
+//3.17
+// IDLE WALK RUN PUNCH KICK 순서
+static bool bButcherIDLE = false;
+static bool bButcherWALK = false;
+static bool bButcherRUN = false;
+static bool bButcherPUNCH = false;
+static bool bButcherKICK = false;
+
 
 CScene::CScene()
 {
@@ -189,94 +194,140 @@ bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
 
 bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, CPlayerShader * playerShader)
 {
-	//3.5
+	//3.17 Butcher 조작키 설정
 	switch (nMessageID)
 	{
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		////3.11 뛰는 애니메이션 조작키를 Z에서 방향키로 바꿈
-		//case VK_UP:
-		//	if (!bCharaterRun && !bCharaterPunch)
-		//	{
-		//		playerShader->GetFBXMesh->SetAnimation(0);
-		//		bCharaterRun = true;
-		//		bCharaterPunch = false;
-		//	}
-		//	break;
-		//case VK_DOWN:
-		//	if (!bCharaterRun && !bCharaterPunch)
-		//	{
-		//		playerShader->GetFBXMesh->SetAnimation(0);
-		//		bCharaterRun = true;
-		//		bCharaterPunch = false;
-		//	}
-		//	break;
-		//case VK_LEFT:
-		//	if (!bCharaterRun && !bCharaterPunch)
-		//	{
-		//		playerShader->GetFBXMesh->SetAnimation(0);
-		//		bCharaterRun = true;
-		//		bCharaterPunch = false;
-		//	}
-		//	break;
-		//case VK_RIGHT:
-		//	if (!bCharaterRun && !bCharaterPunch)
-		//	{
-		//		playerShader->GetFBXMesh->SetAnimation(0);
-		//		bCharaterRun = true;
-		//		bCharaterPunch = false;
-		//	}
-		//	break;
-		//case 'X':
-		//	if (!bCharaterPunch)
-		//	{
-		//		playerShader->GetFBXMesh->SetAnimation(0);
-		//		bCharaterRun = false;
-		//		bCharaterPunch = true;
-		//	}
-		//	break;
-		//default:
-		//	break;
+		case VK_UP:
+			if (!bButcherWALK)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bButcherIDLE = false;
+				bButcherWALK = true;
+				bButcherRUN = false;
+			}
+			break;
+		case VK_DOWN:
+			if (!bButcherWALK)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bButcherIDLE = false;
+				bButcherWALK = true;
+				bButcherRUN = false;
+			}
+			break;
+		case VK_LEFT:
+			if (!bButcherWALK)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bButcherIDLE = false;
+				bButcherWALK = true;
+				bButcherRUN = false;
+			}
+			break;
+		case VK_RIGHT:
+			if (!bButcherWALK)
+			{
+				playerShader->GetFBXMesh->SetAnimation(1);
+				bButcherIDLE = false;
+				bButcherWALK = true;
+				bButcherRUN = false;
+			}
+			break;
+		case VK_SHIFT:			// 뛸떄는 걷고있는중에 shift를 눌러야한다.
+			if (bButcherWALK && !bButcherRUN)
+			{
+				playerShader->GetFBXMesh->SetAnimation(2);
+				bButcherRUN = true;
+			}
+			break;
+		case 'X':
+			if (!bButcherPUNCH)
+			{
+				playerShader->GetFBXMesh->SetAnimation(3);
+				bButcherPUNCH = true;
+			}
+			break;
+		case 'Z':
+			if (!bButcherKICK)
+			{
+				playerShader->GetFBXMesh->SetAnimation(4);
+				bButcherKICK = true;
+			}
+			break;
+		default:
+			break;
 		}
 		break;
 	case WM_KEYUP:
 		switch (wParam)
 		{
 		case VK_UP:
-			if (bCharaterRun)
+			if (bButcherWALK)
 			{
 				playerShader->GetFBXMesh->SetAnimation(0);
-				bCharaterRun = false;
+				bButcherIDLE = true;
+				bButcherWALK = false;
 			}
 			break;
 		case VK_DOWN:
-			if (bCharaterRun)
+			if (bButcherWALK)
 			{
 				playerShader->GetFBXMesh->SetAnimation(0);
-				bCharaterRun = false;
+				bButcherIDLE = true;
+				bButcherWALK = false;
 			}
 			break;
 		case VK_LEFT:
-			if (bCharaterRun)
+			if (bButcherWALK)
 			{
 				playerShader->GetFBXMesh->SetAnimation(0);
-				bCharaterRun = false;
+				bButcherIDLE = true;
+				bButcherWALK = false;
 			}
 			break;
 		case VK_RIGHT:
-			if (bCharaterRun)
+			if (bButcherWALK)
 			{
 				playerShader->GetFBXMesh->SetAnimation(0);
-				bCharaterRun = false;
+				bButcherIDLE = true;
+				bButcherWALK = false;
+			}
+			break;
+		case VK_SHIFT:			
+			if (bButcherRUN)
+			{
+				if (bButcherWALK)		// 뛰는걸 멈췄는데 만약 계속 걷고있는중이면 WALK상태로 만든다.
+				{
+					playerShader->GetFBXMesh->SetAnimation(1);
+					bButcherWALK = true;
+					bButcherRUN = false;
+				}
+				if (!bButcherWALK)		// 뛰는것도 아니고 걷는것도 아니면 IDLE상태로 만든다.
+				{
+					playerShader->GetFBXMesh->SetAnimation(0);		// IDLE상태로 만든다.
+					bButcherIDLE = true;
+					bButcherRUN = false;
+					bButcherWALK = false;
+				}
 			}
 			break;
 		case 'X':
-			if (bCharaterPunch)
+			if (bButcherPUNCH)
 			{
 				playerShader->GetFBXMesh->SetAnimation(0);
-				bCharaterPunch = false;
+				bButcherPUNCH = false;
 			}
+			break;
+		case 'Z':
+			if (bButcherKICK)
+			{
+				playerShader->GetFBXMesh->SetAnimation(0);
+				bButcherKICK = false;
+			}
+			break;
 		default:
 			break;
 		}

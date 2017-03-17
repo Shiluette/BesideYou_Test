@@ -398,15 +398,6 @@ void CGameFramework::Build2DObjects()
 	result = LoadImageFromFile(L"Brick01.jpg", &m_ppd2dBitmap[0], nullptr, 0, 0, WICBitmapTransformRotate90);
 	//b_result = LoadImageFromFile(L"Image/Bitmap/button_on.jpg", &m_ppd2dBitmap[BITMAP::LobbyStartOff], nullptr, 0, 0, WICBitmapTransformRotate0);
 	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbyStartOn], nullptr, 0, 0, WICBitmapTransformRotate0);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbySelectOff], nullptr, 0, 0, WICBitmapTransformRotate0);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbySelectOn], nullptr, 0, 0, WICBitmapTransformRotate0);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbyExitOff], nullptr, 0, 0, WICBitmapTransformRotate0);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/button_off.jpg", &m_ppd2dBitmap[BITMAP::LobbyExitOn], nullptr, 0, 0, WICBitmapTransformRotate0);
-
-	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrow.png", &m_ppd2dBitmap[BITMAP::SelectArrowLeftOff], nullptr, 0, 0, WICBitmapTransformRotate180);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrowOn.png", &m_ppd2dBitmap[BITMAP::SelectArrowLeftOn], nullptr, 0, 0, WICBitmapTransformRotate180);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrow.png", &m_ppd2dBitmap[BITMAP::SelectArrowRightOff], nullptr, 0, 0, WICBitmapTransformRotate0);
-	//b_result = LoadImageFromFile(L"Image/Bitmap/RightArrowOn.png", &m_ppd2dBitmap[BITMAP::SelectArrowRightOn], nullptr, 0, 0, WICBitmapTransformRotate0);
 }
 
 void CGameFramework::Render2D()
@@ -621,10 +612,6 @@ void CGameFramework::FrameAdvance()
 	//후면버퍼를 전면버퍼로 프리젠트한다. 
 	m_pDXGISwapChain->Present(0, 0);
 
-	/*현재의 프레임 레이트를 문자열로 가져와서 주 윈도우의 타이틀로 출력한다. m_pszBuffer 문자열이 "LapProject ("으로 초기화되었으므로 (m_pszBuffer+12)에서부터 프레임 레이트를 문자열로 출력하여 “ FPS)” 문자열과 합친다.
-	_itow_s(m_nCurrentFrameRate, (m_pszBuffer+12), 37, 10);
-	wcscat_s((m_pszBuffer+12), 37, _T(" FPS)"));
-	*/
 	m_GameTimer.GetFrameRate(m_pszBuffer + 12, 37);
 	::SetWindowText(m_hWnd, m_pszBuffer);
 }
@@ -647,8 +634,6 @@ void CGameFramework::FBXModelDataLoad(void)
 	ID3D11ShaderResourceView *pd3dsrvTexture = NULL;
 	CTexture *TestTexture = CreateTexture(m_pd3dDevice, _T("../Data/BesideYouData/Vehice_Ambulance.png"), &pd3dsrvTexture, &pd3dSamplerState, 0, 0);
 	pd3dSamplerState->Release();
-
-	//CMesh* pTestMesh = new CFBXMesh(m_pd3dDevice, "../Data/ambo_mesh.data", 0.01);
 
 	CMesh * pTestMesh = new CAssetMesh(m_pd3dDevice, "../Data/BesideYouData/ambo_mesh.data");
 	

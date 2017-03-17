@@ -309,26 +309,6 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice)
 	}
 
 
-	//{
-	//	////2.19
-	//	CCubeMesh *pCubeMesh = new CCubeMesh(pd3dDevice, 10.0f, 10.0f, 10.0f, D3DXCOLOR(0.5f, 1.0f, 0.0f, 0.0f));
-	//	CTerrainPlayer *pTerrainPlayer = new CTerrainPlayer(1);
-	//	pTerrainPlayer->SetMesh(pCubeMesh);
-	//	pTerrainPlayer->CreateShaderVariables(pd3dDevice);
-	//	pTerrainPlayer->ChangeCamera(pd3dDevice, SPACESHIP_CAMERA, 0.0f);
-
-	//	//2.22
-	//	CCamera *pTestCamera = pTerrainPlayer->GetCamera();
-	//	pTestCamera->SetViewport(pd3dDeviceContext, 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
-	//	pTestCamera->GenerateProjectionMatrix(1.01f, 50000.0f, ASPECT_RATIO, 60.0f);
-	//	pTestCamera->GenerateViewMatrix();
-	//	//2.22
-
-	//	pTerrainPlayer->SetPosition(D3DXVECTOR3(0.0f, 10.0f, -50.0f));
-	//	m_ppObjects[1] = pTerrainPlayer;
-	//	////2.19
-	//}
-
 	if (pd3dDeviceContext) pd3dDeviceContext->Release();
 }
 
@@ -337,22 +317,6 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 {
 	m_nObjects = 1;
 	m_ppObjects = new CGameObject*[m_nObjects];
-
-	/*m_pTexture = (*modeldata.begin())->m_pModelTexture;
-	if ((*modeldata.begin())->m_pModelTexture) (*modeldata.begin())->m_pModelTexture->AddRef();
-
-	CMaterial *pTestMaterial = new CMaterial();
-	pTestMaterial->m_Material.m_d3dxcDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pTestMaterial->m_Material.m_d3dxcAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pTestMaterial->m_Material.m_d3dxcSpecular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pTestMaterial->m_Material.m_d3dxcEmissive = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-
-	CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
-	pPlayer->SetMesh((*modeldata.begin())->m_pModelMesh);
-	pPlayer->SetTexture((*modeldata.begin())->m_pModelTexture);
-	pPlayer->SetMaterial(pTestMaterial);
-	pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
-	m_ppObjects[0] = pPlayer;*/
 
 	//3.6
 	{
@@ -385,14 +349,14 @@ void CPlayerShader::BuildObjects(ID3D11Device *pd3dDevice, vector<ModelContainer
 		m_pTexture = pDrayerTexture;
 		if (m_pTexture) m_pTexture->AddRef();
 
-		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/BesideYouData/Butcher_attack.data", 0.3);
+		CMesh *pTestMesh = new CFBXMesh(pd3dDevice, "../Data/BesideYouData/Butcher_Animation.data", 0.3);
 
 		CTerrainPlayer * pPlayer = new CTerrainPlayer(1);
 		pPlayer->SetMesh(pTestMesh);
 		pPlayer->SetTexture(pDrayerTexture);
 		pPlayer->SetMaterial(pNormalMaterial);
 		pPlayer->ChangeCamera(pd3dDevice, THIRD_PERSON_CAMERA, 0.0f);
-		//pPlayer->SetPosition(D3DXVECTOR3(0.0f, -500.0f, 0.0f));
+		//pPlayer->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 		m_ppObjects[0] = pPlayer;
 	}
 }

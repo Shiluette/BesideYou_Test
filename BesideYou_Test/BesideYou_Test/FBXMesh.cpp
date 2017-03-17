@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 //3.3
+//3.17
 CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : CMeshTexturedIlluminated(pd3dDevice)
 {
 	m_fFBXModelSize = fSize;
@@ -20,13 +21,23 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 		// 데이터를 읽어와 필요한 정점, 인덱스, 본, 애니메이션 수 파악
 		fin.getline(ch, 200);	// [MESH_DATA]
 		fin.getline(ch, 200);
-		m_nVertices = stoi(ch);
+		sToken = strtok_s(ch, " ", &temp);
+		sToken = strtok_s(NULL, " ", &temp);
+		m_nVertices = stoi(sToken);
 		fin.getline(ch, 200);
-		m_nIndices = stoi(ch);
+		sToken = strtok_s(ch, " ", &temp);
+		sToken = strtok_s(NULL, " ", &temp);
+		m_nIndices = stoi(sToken);
 		fin.getline(ch, 200);
-		m_nBoneCount = stoi(ch);
+		sToken = strtok_s(ch, " ", &temp);
+		sToken = strtok_s(NULL, " ", &temp);
+		m_nBoneCount = stoi(sToken);
 		fin.getline(ch, 200);
-		m_nAnimationClip = stoi(ch);
+		sToken = strtok_s(ch, " ", &temp);
+		sToken = strtok_s(NULL, " ", &temp);
+		m_nAnimationClip = stoi(sToken);
+
+		fin.getline(ch, 1); // 한줄띄워쓰기
 
 		// 정점 데이터를 저장
 		fin.getline(ch, 200);	 // [VERTEX_DATA]
@@ -43,28 +54,28 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 		{
 			// Vertice
 			fin.getline(ch, 200);
-			sToken = strtok_s(ch, " ", &temp);	 m_pd3dxvPositions[i].x = stof(sToken);
+			sToken = strtok_s(ch, " ", &temp);	sToken = strtok_s(NULL, " ", &temp); m_pd3dxvPositions[i].x = stof(sToken);
 			sToken = strtok_s(NULL, " ", &temp); m_pd3dxvPositions[i].y = stof(sToken);
 			sToken = strtok_s(NULL, " ", &temp); m_pd3dxvPositions[i].z = stof(sToken);
 			// Normal
 			fin.getline(ch, 200);
-			sToken = strtok_s(ch, " ", &temp);   m_pd3dxvNormals[i].x = stof(sToken);
+			sToken = strtok_s(ch, " ", &temp); sToken = strtok_s(NULL, " ", &temp);  m_pd3dxvNormals[i].x = stof(sToken);
 			sToken = strtok_s(NULL, " ", &temp); m_pd3dxvNormals[i].y = stof(sToken);
 			sToken = strtok_s(NULL, " ", &temp); m_pd3dxvNormals[i].z = stof(sToken);
 			// UV
 			fin.getline(ch, 200);
-			sToken = strtok_s(ch, " ", &temp);   m_pd3dxvTexCoords[i].x = stof(sToken);
+			sToken = strtok_s(ch, " ", &temp);  sToken = strtok_s(NULL, " ", &temp); m_pd3dxvTexCoords[i].x = stof(sToken);
 			sToken = strtok_s(NULL, " ", &temp); m_pd3dxvTexCoords[i].y = stof(sToken);
 			if (m_nBoneCount)
 			{			// BoneIndice
 				fin.getline(ch, 200);
-				sToken = strtok_s(ch, " ", &temp); 	 m_pd3dxvBoneIndices[i].x = stof(sToken);
+				sToken = strtok_s(ch, " ", &temp); sToken = strtok_s(NULL, " ", &temp);	 m_pd3dxvBoneIndices[i].x = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxvBoneIndices[i].y = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxvBoneIndices[i].z = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxvBoneIndices[i].w = stof(sToken);
 				// BoneWeight
 				fin.getline(ch, 200);
-				sToken = strtok_s(ch, " ", &temp);   m_pd3dxvBoneWeights[i].x = stof(sToken);
+				sToken = strtok_s(ch, " ", &temp); sToken = strtok_s(NULL, " ", &temp);  m_pd3dxvBoneWeights[i].x = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxvBoneWeights[i].y = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxvBoneWeights[i].z = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxvBoneWeights[i].w = stof(sToken);
@@ -80,6 +91,8 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 			m_pd3dxvPositions[i].z *= 0.1f;
 		}*/
 
+		fin.getline(ch, 1);	//파일에서는 두줄띄워져있는데 하나만 써도 두줄이 읽히나보다
+
 		// 인덱스 데이터 저장
 		fin.getline(ch, 200);		//[INDEX_DATA]
 		m_pnIndices = new UINT[m_nIndices];
@@ -91,6 +104,8 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 			sToken = strtok_s(NULL, " ", &temp); m_pnIndices[i + 1] = stoi(sToken);
 			sToken = strtok_s(NULL, " ", &temp); m_pnIndices[i + 2] = stoi(sToken);
 		}
+
+		fin.getline(ch, 1);	//띄어쓰기
 
 		// (애니메이션을 포함한 메쉬일 경우) 본 정보와 애니메이션 정보 저장
 		if (m_nBoneCount)
@@ -105,14 +120,19 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 			for (int i = 0; i < m_nBoneCount; i++)
 			{
 				fin.getline(ch, 200);
-				m_pBoneHierarchy[i] = stoi(ch);
+				sToken = strtok_s(ch, " ", &temp); 
+				sToken = strtok_s(NULL, " ", &temp);
+				m_pBoneHierarchy[i] = stoi(sToken);
 			}
+
+			fin.getline(ch, 1);	//한줄 띄어쓰기
+
 			// 뼈대 자체의 오프셋 행렬을 저장
 			fin.getline(ch, 200);		//[OFFSET_MATRIX]
 			for (int i = 0; i < m_nBoneCount; i++)
 			{
 				fin.getline(ch, 200);
-				sToken = strtok_s(ch, " ", &temp);   m_pd3dxmtxBoneOffsets[i]._11 = stof(sToken);
+				sToken = strtok_s(ch, " ", &temp);  sToken = strtok_s(NULL, " ", &temp); m_pd3dxmtxBoneOffsets[i]._11 = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxmtxBoneOffsets[i]._12 = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxmtxBoneOffsets[i]._13 = stof(sToken);
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxmtxBoneOffsets[i]._14 = stof(sToken);
@@ -130,6 +150,8 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 				sToken = strtok_s(NULL, " ", &temp); m_pd3dxmtxBoneOffsets[i]._44 = stof(sToken);
 			}
 
+			fin.getline(ch, 1);	//띄어쓰기
+
 			// 여기에서부터 애니메이션을 담는다.
 			m_ppBoneAnimationData = new BoneAnimationData*[m_nAnimationClip];
 
@@ -139,34 +161,43 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 				pBoneAnimationData = new BoneAnimationData[m_nBoneCount];
 
 				fin.getline(ch, 200);	//	[ANIMATION_CLIPS]
+				fin.getline(ch, 200);	//	[AnimationClip Take_001]
+				fin.getline(ch, 20);	//  {
 				for (int i = 0; i < m_nBoneCount; i++)
 				{
 					fin.getline(ch, 200);
 					sToken = strtok_s(ch, " ", &temp);
+					sToken = strtok_s(NULL, " ", &temp);
 					sToken = strtok_s(NULL, " ", &temp);
 					pBoneAnimationData[i].m_nFrameCount = stoi(sToken);		// 프레임카운트가 들어간다
 					pBoneAnimationData[i].m_pd3dxvTranslate = new D3DXVECTOR3[pBoneAnimationData[i].m_nFrameCount];
 					pBoneAnimationData[i].m_pd3dxvScale = new D3DXVECTOR3[pBoneAnimationData[i].m_nFrameCount];
 					pBoneAnimationData[i].m_pd3dxvQuaternion = new D3DXVECTOR4[pBoneAnimationData[i].m_nFrameCount];
 					pBoneAnimationData[i].m_pfAniTime = new float[pBoneAnimationData[i].m_nFrameCount];
+					fin.getline(ch, 20);	// {
 					for (int j = 0; j < pBoneAnimationData[i].m_nFrameCount; j++)
 					{
+						
 						fin.getline(ch, 200);
 						////BesideYou 모델은 이걸 추가해야 작동한다.
-						sToken = strtok_s(ch, "                ", &temp);
+						sToken = strtok_s(ch, "                ", &temp);	//Time:
+						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pfAniTime[j] = stof(sToken);
+						sToken = strtok_s(NULL, " ", &temp);				// T:
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvTranslate[j].x = stof(sToken);
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvTranslate[j].y = stof(sToken);
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvTranslate[j].z = stof(sToken);
+						sToken = strtok_s(NULL, " ", &temp);				// S:
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvScale[j].x = stof(sToken);
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvScale[j].y = stof(sToken);
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvScale[j].z = stof(sToken);
+						sToken = strtok_s(NULL, " ", &temp);				// Q:
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvQuaternion[j].x = stof(sToken);
 						sToken = strtok_s(NULL, " ", &temp);
@@ -176,8 +207,10 @@ CFBXMesh::CFBXMesh(ID3D11Device *pd3dDevice, char *pszFileName, float fSize) : C
 						sToken = strtok_s(NULL, " ", &temp);
 						pBoneAnimationData[i].m_pd3dxvQuaternion[j].w = stof(sToken);
 					}
+					fin.getline(ch, 20);	// }
 				}
 				m_ppBoneAnimationData[k] = pBoneAnimationData;
+				fin.getline(ch, 20);	//  }
 			}
 		}
 	}
